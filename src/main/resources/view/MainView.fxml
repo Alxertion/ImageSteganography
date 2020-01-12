@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXRadioButton?>
+<?import com.jfoenix.controls.JFXSlider?>
+<?import com.jfoenix.controls.JFXTextArea?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+            minWidth="-Infinity" prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.MainController">
+    <GridPane hgap="14.0" prefHeight="700.0" prefWidth="1200.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="33.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="34.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="33.0" prefWidth="100.0"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="ALWAYS"/>
+        </rowConstraints>
+        <padding>
+            <Insets bottom="14.0" left="14.0" right="14.0" top="14.0"/>
+        </padding>
+        <GridPane vgap="14.0" GridPane.vgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="ALWAYS"/>
+                <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="ALWAYS"/>
+            </rowConstraints>
+            <TitledPane animated="false" collapsible="false" prefHeight="379.0" prefWidth="378.0"
+                        text="Steganography method" GridPane.hgrow="SOMETIMES" GridPane.valignment="TOP"
+                        GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="376.0">
+                    <JFXRadioButton fx:id="LSBRadioButton" layoutX="14.0" layoutY="14.0"
+                                    prefHeight="38.0" prefWidth="276.0" selected="true"
+                                    text="Least significant bit (LSB)">
+                        <toggleGroup>
+                            <ToggleGroup fx:id="methodToggleGroup"/>
+                        </toggleGroup>
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXRadioButton>
+                    <JFXRadioButton fx:id="PVDRadioButton" layoutX="14.0" layoutY="220.0"
+                                    prefHeight="38.0" prefWidth="276.0"
+                                    text="Pixel-value differencing (PVD)"
+                                    toggleGroup="$methodToggleGroup">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXRadioButton>
+                    <JFXSlider fx:id="LSBBitsUsedSlider" blockIncrement="1.0" layoutX="132.0"
+                               layoutY="57.0" majorTickUnit="1.0" max="8.0" min="1.0"
+                               minorTickCount="0" prefHeight="24.0" prefWidth="230.0"
+                               showTickLabels="true" showTickMarks="true" snapToTicks="true"
+                               value="2.0"/>
+                    <Label layoutX="44.0" layoutY="57.0" text="- Bits used:">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <Label layoutX="44.0" layoutY="93.0" text="- Pattern:">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <JFXRadioButton fx:id="fibonacciPatternRadioButton" layoutX="81.0"
+                                    layoutY="158.0" prefHeight="38.0" prefWidth="111.0"
+                                    text="Fibonacci">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                        <toggleGroup>
+                            <ToggleGroup fx:id="patternToggleGroup"/>
+                        </toggleGroup>
+                    </JFXRadioButton>
+                    <JFXRadioButton fx:id="everyNPixelsRadioButton" layoutX="81.0" layoutY="120.0"
+                                    prefHeight="38.0" prefWidth="111.0" selected="true"
+                                    text="Use every" toggleGroup="$patternToggleGroup">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXRadioButton>
+                    <JFXTextField fx:id="everyNPixelsTextField" layoutX="204.0" layoutY="120.0"
+                                  prefHeight="26.0" prefWidth="30.0" promptText="n">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextField>
+                    <Label layoutX="237.0" layoutY="126.0" text="pixels">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                </AnchorPane>
+            </TitledPane>
+            <TitledPane animated="false" collapsible="false" prefHeight="334.0" prefWidth="378.0"
+                        text="File encryption method" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1"
+                        GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <JFXCheckBox fx:id="useEncryptionCheckbox" layoutX="28.0" layoutY="242.0"
+                                 prefHeight="42.0" prefWidth="161.0" text="Use encryption?">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXCheckBox>
+                </AnchorPane>
+            </TitledPane>
+        </GridPane>
+        <GridPane vgap="14.0" GridPane.columnIndex="1" GridPane.vgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="70.0" prefHeight="30.0" vgrow="ALWAYS"/>
+                <RowConstraints minHeight="10.0" percentHeight="30.0" prefHeight="30.0" vgrow="ALWAYS"/>
+            </rowConstraints>
+            <TitledPane animated="false" collapsible="false" prefHeight="480.0" prefWidth="388.0"
+                        text="Image" GridPane.hgrow="SOMETIMES" GridPane.valignment="TOP"
+                        GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <ImageView fx:id="imageView" fitHeight="280.0" fitWidth="360.0" layoutX="13.0"
+                               layoutY="14.0" pickOnBounds="true" preserveRatio="true"/>
+                    <Label fx:id="imageNameLabel" layoutX="14.0" layoutY="302.0" text="Image name:">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <JFXButton onAction="#loadImageButtonHandler" buttonType="RAISED" layoutX="13.0"
+                               layoutY="342.0" prefHeight="67.0" prefWidth="360.0"
+                               text="Load a new image">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXButton>
+                </AnchorPane>
+            </TitledPane>
+            <TitledPane animated="false" collapsible="false" prefHeight="203.0" prefWidth="388.0"
+                        text="File" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1"
+                        GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <JFXButton onAction="#loadFileButtonHandler" buttonType="RAISED" layoutX="13.0"
+                               layoutY="80.0" prefHeight="67.0" prefWidth="360.0"
+                               text="Load a new file" fx:id="loadFileButton" disable="true">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXButton>
+                    <Label fx:id="fileNameLabel" layoutX="13.0" layoutY="45.0" text="File name:">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <Label fx:id="maxFileSizeLabel" layoutX="13.0" layoutY="14.0"
+                           text="Max. file size: 0 Bytes">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                </AnchorPane>
+            </TitledPane>
+        </GridPane>
+        <GridPane vgap="14.0" GridPane.columnIndex="2" GridPane.vgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <TitledPane animated="false" collapsible="false" prefHeight="350.0" prefWidth="370.0"
+                        text="Actions" GridPane.hgrow="SOMETIMES" GridPane.valignment="TOP"
+                        GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <JFXButton onAction="#encodeButtonHandler" buttonType="RAISED" layoutX="18.0"
+                               layoutY="14.0" prefHeight="67.0" prefWidth="340.0"
+                               text="Encode file in image" disable="true" fx:id="encodeButton">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXButton>
+                    <JFXButton onAction="#decodeButtonHandler" buttonType="RAISED" layoutX="18.0"
+                               layoutY="93.0" prefHeight="67.0" prefWidth="340.0"
+                               text="Decode file from image" disable="true" fx:id="decodeButton">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXButton>
+                </AnchorPane>
+            </TitledPane>
+            <TitledPane animated="false" collapsible="false" prefHeight="334.0" prefWidth="378.0"
+                        text="Help" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1"
+                        GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+                <font>
+                    <Font size="18.0"/>
+                </font>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <JFXTextArea fx:id="helpTextArea" editable="false" layoutX="14.0" layoutY="12.0"
+                                 prefHeight="267.0" prefWidth="348.0"/>
+                </AnchorPane>
+            </TitledPane>
+        </GridPane>
+    </GridPane>
+</AnchorPane>
