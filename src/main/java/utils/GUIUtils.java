@@ -1,12 +1,27 @@
 package utils;
 
+import com.jfoenix.controls.JFXRadioButton;
+import com.jfoenix.controls.JFXTextField;
+import controllers.SaveImageController;
+import exceptions.SteganographyException;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class GUIUtils {
+    // COLOR CONSTANTS
+    public static final Color PRIMARY_COLOR = new Color(33 / 255d, 150 / 255d, 243 / 255d, 1);
+
+    // STRING CONSTANTS
     private static final String FILE_NAME_PREFIX = "File name: ";
     private static final String MAX_FILE_SIZE_PREFIX = "Max. file size: ";
 
@@ -62,10 +77,10 @@ public class GUIUtils {
      * in B, KB or MB depending on the byte count.
      */
     public static String formatBytesValue(long byteCount) {
-        long kiloBytes = byteCount / 1024;
-        long megaBytes = kiloBytes / 1024;
-        if (kiloBytes != 0) {
-            if (megaBytes != 0) {
+        double kiloBytes = Math.round((byteCount / 1024d) * 100.0) / 100.0;
+        double megaBytes = Math.round((kiloBytes / 1024d) * 100.0) / 100.0;
+        if (kiloBytes >= 1) {
+            if (megaBytes >= 1) {
                 return megaBytes + " MBytes";
             }
             return kiloBytes + " KBytes";
@@ -75,11 +90,13 @@ public class GUIUtils {
 
     /**
      * Returns the maximum file size possible that can be encoded in an image,
-     * based on the image width & height.
+     * based on the image width & height, and the number of least significant
+     * bits that are used.
      */
-    public static long getMaxFileSize(Image image) {
+    public static long getMaxFileSize(Image image, int bitsUsed) {
         double bytes = image.getWidth() * image.getHeight(); // number of pixels
-        bytes *= 3; // max number of encoded bits
+        bytes *= 3; // max number of encoded bits if we use 1 bit
+        bytes *= bitsUsed; // max number of encoded bits if we use 'bitsUsed' bits
         bytes /= 8; // max number of encoded bytes
         return (long) bytes;
     }
@@ -90,8 +107,8 @@ public class GUIUtils {
      * formatted as bytes, KBytes or MBytes.
      * It returns the amount of bytes that can be encoded.
      */
-    public static long setMaxFileSize(Image image, Label maxFileSizeLabel) {
-        long bytes = getMaxFileSize(image);
+    public static long setMaxFileSize(Image image, Label maxFileSizeLabel, int bitsUsed) {
+        long bytes = getMaxFileSize(image, bitsUsed);
 
         String formattedBytesValue = formatBytesValue(bytes);
         maxFileSizeLabel.setText(MAX_FILE_SIZE_PREFIX + formattedBytesValue);
@@ -113,5 +130,66 @@ public class GUIUtils {
      */
     public static void resetFileNameText(Label fileNameLabel) {
         fileNameLabel.setText(FILE_NAME_PREFIX);
+    }
+
+    /**
+     * Returns the method used for encryption as a String. Throws a SteganographyException
+     * if the currently selected method is invalid.
+     */
+    public static String getSteganographyMethod(JFXRadioButton everyNPixelsRadioButton,
+                                                JFXTextField everyNPixelsTextField) {
+        String methodString;
+        if (everyNPixelsRadioButton.isSelected()) {
+            try {
+                Integer.parseInt(everyNPixelsTextField.getText());
+                methodString = everyNPixelsTextField.getText();
+            } catch (NumberFormatException exception) {
+                throw new SteganographyException(
+                        "Invalid number value!",
+                        "'Every n pixels' value should be a number!");
+            }
+        } else {
+            methodString = "fibonacci";
+        }
+        return methodString;
+    }
+
+    /**
+     * Shows a dialog that displays the original and the cover image side by side, and
+     * allows the user to either save the image or cancel the operation altogether.
+     */
+    public static void showSaveImageDialog(Stage mainStage,
+                                           Image originalImage,
+                                           BufferedImage coverImage) {
+        try {
+            // load the new window and the components
+            FXMLLoader fxmlLoader = new FXMLLoader(GUIUtils.class.getResource("../view/SaveImageView.fxml"));
+            Parent root = fxmlLoader.load();
+
+            // send the images to the controller so that they can be displayed
+            SaveImageController controller = fxmlLoader.getController();
+            controller.setMainStage(mainStage);
+            controller.setOriginalImage(originalImage);
+            controller.setCoverImage(coverImage);
+
+            // show the new window on the screen, modal
+            Stage stage = new Stage();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            controller.setCurrentStage(stage);
+            stage.setTitle("Original and Cover Images");
+            stage.setResizable(false);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            scene.getRoot().getStylesheets().add(GUIUtils.class.getResource("../css/styles.css").toExternalForm());
+            stage.showAndWait();
+        } catch (Exception e) {
+            AlertUtils.showNotificationAlert(mainStage,
+                    "Saving error!",
+                    "The cover image can not be displayed.");
+        }
+    }
+
+    public static void showSaveFileDialog(byte[] decodedFileBytes) {
+
     }
 }

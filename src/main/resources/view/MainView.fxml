@@ -59,14 +59,14 @@
                             <Font size="18.0"/>
                         </font>
                     </JFXRadioButton>
-                    <JFXRadioButton fx:id="PVDRadioButton" layoutX="14.0" layoutY="220.0"
-                                    prefHeight="38.0" prefWidth="276.0"
-                                    text="Pixel-value differencing (PVD)"
-                                    toggleGroup="$methodToggleGroup">
-                        <font>
-                            <Font size="18.0"/>
-                        </font>
-                    </JFXRadioButton>
+<!--                    <JFXRadioButton fx:id="PVDRadioButton" layoutX="14.0" layoutY="220.0"-->
+<!--                                    prefHeight="38.0" prefWidth="276.0"-->
+<!--                                    text="Pixel-value differencing (PVD)"-->
+<!--                                    toggleGroup="$methodToggleGroup">-->
+<!--                        <font>-->
+<!--                            <Font size="18.0"/>-->
+<!--                        </font>-->
+<!--                    </JFXRadioButton>-->
                     <JFXSlider fx:id="LSBBitsUsedSlider" blockIncrement="1.0" layoutX="132.0"
                                layoutY="57.0" majorTickUnit="1.0" max="8.0" min="1.0"
                                minorTickCount="0" prefHeight="24.0" prefWidth="230.0"
@@ -100,7 +100,7 @@
                         </font>
                     </JFXRadioButton>
                     <JFXTextField fx:id="everyNPixelsTextField" layoutX="204.0" layoutY="120.0"
-                                  prefHeight="26.0" prefWidth="30.0" promptText="n">
+                                  prefHeight="26.0" prefWidth="30.0" promptText="n" text="1">
                         <font>
                             <Font size="18.0"/>
                         </font>

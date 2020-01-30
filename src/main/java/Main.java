@@ -1,3 +1,4 @@
+import controllers.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -7,13 +8,18 @@ import javafx.stage.Stage;
 public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("view/MainView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("view/MainView.fxml"));
+        Parent root = fxmlLoader.load();
+        MainController controller = fxmlLoader.getController();
+        controller.setMainStage(stage);
+
         Scene scene = new Scene(root);
-        stage.setScene(scene);
+        stage.setTitle("Image Steganography");
         stage.setResizable(false);
+        stage.setScene(scene);
+
         scene.getRoot().getStylesheets().add(getClass().getResource("css/styles.css").toExternalForm());
         stage.show();
-        stage.setTitle("Image Steganography");
     }
 
     public static void main(String[] args) {

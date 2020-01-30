@@ -1,10 +1,10 @@
 package controllers;
 
 import com.jfoenix.controls.*;
+import exceptions.SteganographyException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
@@ -12,22 +12,28 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import utils.AlertUtils;
 import utils.GUIUtils;
+import utils.SteganographyUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @SuppressWarnings("DuplicatedCode")
 public class MainController {
-    // COLORS
-    Color primaryColor = new Color(33 / 255d, 150 / 255d, 243 / 255d, 1);
+    // THE MAIN STAGE
+    Stage mainStage;
 
     // STEGANOGRAPHY METHOD - Radio Buttons & Toggle Group
     @FXML
     private JFXRadioButton LSBRadioButton;
-    @FXML
-    private JFXRadioButton PVDRadioButton;
+//    @FXML
+//    private JFXRadioButton PVDRadioButton;
     @FXML
     private ToggleGroup methodToggleGroup;
 
@@ -84,13 +90,13 @@ public class MainController {
 
     public void initialize() {
         // Set the radio button colors
-        LSBRadioButton.setSelectedColor(primaryColor);
-        PVDRadioButton.setSelectedColor(primaryColor);
-        everyNPixelsRadioButton.setSelectedColor(primaryColor);
-        fibonacciPatternRadioButton.setSelectedColor(primaryColor);
+        LSBRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+//        PVDRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+        everyNPixelsRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+        fibonacciPatternRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
 
         // Set the checkbox colors
-        useEncryptionCheckbox.setCheckedColor(primaryColor);
+        useEncryptionCheckbox.setCheckedColor(GUIUtils.PRIMARY_COLOR);
 
         // Text alignment to center for the pixel text field
         everyNPixelsTextField.setAlignment(Pos.CENTER);
@@ -117,16 +123,77 @@ public class MainController {
 
         // Parametrize the image view
         imageView.setPreserveRatio(true);
+
+        // Set a listener on the slider to modify the maximum file size and unload the
+        // file if too few bits were selected
+        LSBBitsUsedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (imageView.getImage() != null) {
+                updateMaxFileSize(imageView.getImage(), newValue.intValue());
+            }
+        });
+    }
+
+    public boolean updateMaxFileSize(Image image, int bitsUsed) {
+        long maxFileSize = GUIUtils.getMaxFileSize(image, bitsUsed);
+        if (selectedFile != null && selectedFile.length() > maxFileSize) {
+            GUIUtils.resetFileNameText(fileNameLabel);
+            encodeButton.setDisable(true);
+            selectedFile = null;
+            AlertUtils.showNotificationAlert(mainStage,
+                    "The loaded file size is too big!",
+                    "The file was unloaded.");
+            return false;
+        } else {
+            maxBytesSize = GUIUtils.setMaxFileSize(image, maxFileSizeLabel, bitsUsed);
+            return true;
+        }
+    }
+
+    public void setMainStage(Stage mainStage) {
+        this.mainStage = mainStage;
     }
 
     @FXML
     private void encodeButtonHandler(ActionEvent event) {
-
+        if (LSBRadioButton.isSelected()) {
+            try {
+                String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
+                // TODO: encode the file name as well after the length
+                BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
+                        (int) LSBBitsUsedSlider.getValue(), methodString);
+                GUIUtils.showSaveImageDialog(mainStage, imageView.getImage(), coverImage);
+            } catch (SteganographyException exception) {
+                AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
+            }
+        }
+//        else if (PVDRadioButton.isSelected()) {
+//            SteganographyUtils.applyPVD(selectedImage, selectedFile);
+//        }
     }
 
     @FXML
     private void decodeButtonHandler(ActionEvent event) {
+        if (LSBRadioButton.isSelected()) {
+            try {
+                String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
 
+                byte[] decodedFileBytes = SteganographyUtils.decodeFileFromImageLSB(selectedImage,
+                        (int) LSBBitsUsedSlider.getValue(), methodString);
+                GUIUtils.showSaveFileDialog(decodedFileBytes);
+                try {
+                    Path path = Paths.get("decodedFile.txt");
+                    Files.write(path, decodedFileBytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                AlertUtils.showNotificationAlert(mainStage,
+                        "Operation successful!",
+                        "The file has been successfully decoded.");
+            } catch (SteganographyException exception) {
+                AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
+            }
+        }
     }
 
     @FXML
@@ -140,8 +207,7 @@ public class MainController {
         fileChooser.setInitialDirectory(fileChooserDirectory);
 
         // let the user pick a file and check if a file was really picked
-        Window ownerWindow = ((Node) event.getTarget()).getScene().getWindow();
-        File encodedFile = fileChooser.showOpenDialog(ownerWindow);
+        File encodedFile = fileChooser.showOpenDialog(mainStage);
         if (encodedFile == null) {
             return;
         }
@@ -154,7 +220,7 @@ public class MainController {
 
         // check the file length (in bytes)
         if (encodedFile.length() > maxBytesSize) {
-            AlertUtils.showNotificationAlert((Stage) ownerWindow,
+            AlertUtils.showNotificationAlert(mainStage,
                     "File too big!",
                     "Its size must be less than " + GUIUtils.formatBytesValue(maxBytesSize) + ".");
             return;
@@ -180,8 +246,7 @@ public class MainController {
         fileChooser.setInitialDirectory(imageChooserDirectory);
 
         // let the user pick a file and check if a file was really picked
-        Window ownerWindow = ((Node) event.getTarget()).getScene().getWindow();
-        File imageFile = fileChooser.showOpenDialog(ownerWindow);
+        File imageFile = fileChooser.showOpenDialog(mainStage);
         if (imageFile == null) {
             return;
         }
@@ -192,15 +257,24 @@ public class MainController {
             return;
         }
 
+        // check if it's an actual image
+        try {
+            BufferedImage bufferedImage = ImageIO.read(imageFile);
+            if (bufferedImage.getWidth() == 0 && bufferedImage.getHeight() == 0) {
+                throw new Exception();
+            }
+        } catch (Exception exception) {
+            AlertUtils.showNotificationAlert(mainStage,
+                    "The chosen image is invalid!",
+                    "Please select an image.");
+            return;
+        }
+
         // check if the file size is not too large
         Image image = new Image(imageFile.toURI().toString());
-        if (selectedFile != null && selectedFile.length() > GUIUtils.getMaxFileSize(image)) {
-            GUIUtils.resetFileNameText(fileNameLabel);
-            encodeButton.setDisable(true);
-            selectedFile = null;
-            AlertUtils.showNotificationAlert((Stage) ownerWindow,
-                    "The loaded file size is too big!",
-                    "The file was unloaded.");
+        boolean successful = updateMaxFileSize(image, (int) LSBBitsUsedSlider.getValue());
+        if (!successful) {
+            return;
         }
 
         // load it in the imageView and update the imageName/maxFileSize labels with the correct information
@@ -209,7 +283,6 @@ public class MainController {
         decodeButton.setDisable(false); // TODO - check if there's actually any info encoded in the image before enabling the button
         imageView.setImage(image);
         GUIUtils.setImageNameText(imageFile, image, imageNameLabel);
-        maxBytesSize = GUIUtils.setMaxFileSize(image, maxFileSizeLabel);
         GUIUtils.centerImage(imageView);
     }
 }
