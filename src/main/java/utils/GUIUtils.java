@@ -11,11 +11,15 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import steganography.RawDecodedFile;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class GUIUtils {
     // COLOR CONSTANTS
@@ -189,7 +193,27 @@ public class GUIUtils {
         }
     }
 
-    public static void showSaveFileDialog(byte[] decodedFileBytes) {
+    public static void showSaveFileDialog(Stage mainStage, RawDecodedFile decodedFile) {
+        // save the actual decoded file
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save decoded file as...");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+            fileChooser.setInitialFileName(decodedFile.getFileName());
 
+            File savedFile = fileChooser.showSaveDialog(mainStage);
+            if (savedFile != null) {
+                Files.write(savedFile.toPath(), decodedFile.getFileBytes());
+                AlertUtils.showNotificationAlert(mainStage,
+                        "Saving successful!",
+                        "The decoded file was saved successfully.");
+            }
+        } catch (IOException exception) {
+            AlertUtils.showNotificationAlert(mainStage,
+                    "Saving error!",
+                    "The decoded file could not be saved.");
+        }
     }
 }

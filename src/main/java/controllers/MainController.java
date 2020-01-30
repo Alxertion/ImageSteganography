@@ -9,20 +9,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import steganography.RawDecodedFile;
 import utils.AlertUtils;
 import utils.GUIUtils;
-import utils.SteganographyUtils;
+import steganography.SteganographyUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @SuppressWarnings("DuplicatedCode")
 public class MainController {
@@ -177,15 +173,9 @@ public class MainController {
             try {
                 String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
 
-                byte[] decodedFileBytes = SteganographyUtils.decodeFileFromImageLSB(selectedImage,
+                RawDecodedFile decodedFile = SteganographyUtils.decodeFileFromImageLSB(selectedImage,
                         (int) LSBBitsUsedSlider.getValue(), methodString);
-                GUIUtils.showSaveFileDialog(decodedFileBytes);
-                try {
-                    Path path = Paths.get("decodedFile.txt");
-                    Files.write(path, decodedFileBytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                GUIUtils.showSaveFileDialog(mainStage, decodedFile);
 
                 AlertUtils.showNotificationAlert(mainStage,
                         "Operation successful!",

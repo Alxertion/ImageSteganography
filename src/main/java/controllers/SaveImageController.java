@@ -63,6 +63,7 @@ public class SaveImageController {
                     new FileChooser.ExtensionFilter("PNG", "*.png"),
                     new FileChooser.ExtensionFilter("All Images", "*.*")
             );
+            // TODO: set initial file name to original file name + "encoded"
 
             File coverImageFile = fileChooser.showSaveDialog(currentStage);
             if (coverImageFile != null) {
