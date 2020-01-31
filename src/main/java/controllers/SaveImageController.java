@@ -24,6 +24,7 @@ public class SaveImageController {
     private Stage mainStage;
     private Stage currentStage;
 
+    private String originalImageFileName;
     private Image originalImage;
     private BufferedImage coverImage;
 
@@ -40,6 +41,10 @@ public class SaveImageController {
 
     public void setCurrentStage(Stage currentStage) {
         this.currentStage = currentStage;
+    }
+
+    public void setOriginalImageFileName(String originalImageFileName) {
+        this.originalImageFileName = originalImageFileName;
     }
 
     public void setOriginalImage(Image originalImage) {
@@ -63,7 +68,7 @@ public class SaveImageController {
                     new FileChooser.ExtensionFilter("PNG", "*.png"),
                     new FileChooser.ExtensionFilter("All Images", "*.*")
             );
-            // TODO: set initial file name to original file name + "encoded"
+            fileChooser.setInitialFileName(originalImageFileName + ".png");
 
             File coverImageFile = fileChooser.showSaveDialog(currentStage);
             if (coverImageFile != null) {

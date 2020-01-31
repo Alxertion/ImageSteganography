@@ -41,7 +41,8 @@ public class SteganographyUtils {
     private static final int LENGTH_BYTES = 4;
 
     /**
-     *
+     * Loads an image (as a BufferedImage) from a file.
+     * Throws a SteganographyException if the selected file is not an actual image.
      */
     private static BufferedImage loadImage(File imageFile) {
         BufferedImage image;
@@ -59,7 +60,9 @@ public class SteganographyUtils {
     }
 
     /**
-     *
+     * We create a copy of the cover image. The copy is required so that we
+     * don't have any issues accessing and modifying the original image itself
+     * (and also because we will display the original and the copy side by side).
      */
     private static BufferedImage createCopyOfImage(BufferedImage image) {
         BufferedImage coverImage = new BufferedImage(image.getWidth(), image.getHeight(),
@@ -71,7 +74,8 @@ public class SteganographyUtils {
     }
 
     /**
-     *
+     * We convert an image to a byte array using a raster. This is done so that we
+     * can access the pixel values themselves (and, therefore, encode data into them).
      */
     private static byte[] getImageAsPixelByteArray(BufferedImage image) {
         WritableRaster raster = image.getRaster();
@@ -80,7 +84,8 @@ public class SteganographyUtils {
     }
 
     /**
-     *
+     * We convert a generic file to a byte array. This is done so that we can
+     * access the bytes that we will encode into an image.
      */
     private static byte[] getFileAsByteArray(File file) {
         try {
@@ -93,34 +98,6 @@ public class SteganographyUtils {
     }
 
     /**
-     *
-     */
-    private static void encodeBytesLSB(byte[] coverImageBytes,
-                                       byte[] addedBytes,
-                                       int offset) {
-        // TODO: check that the added bytes truly fit in the image
-
-        // multiply the offset by 8 to obtain the number of bits we offset with
-        offset *= 8;
-
-        // loop through all the bytes to be added
-        for (int i = 0; i < addedBytes.length; i++) {
-            // get the current 8 bits that we must add
-            int bitsToAdd = addedBytes[i];
-
-            // loop through the bits of the current byte, one at a time
-            for (int currentBit = 7; currentBit >= 0; currentBit--, offset++) {
-                // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
-                int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
-
-                // AND the current bit with 0x1111 1110 (0xFE) to make the last bit 0, and then
-                // OR with the bit to be added, to place it in that empty spot (which we zeroed)
-                coverImageBytes[offset] = (byte) ((coverImageBytes[offset] & 0xFE) | bitToAdd);
-            }
-        }
-    }
-
-    /**
      * Returns the file name with the appended extension, from a File object.
      */
     public static String getFileName(File file) {
@@ -128,6 +105,9 @@ public class SteganographyUtils {
     }
 
     /**
+     * This method encodes a file into an image, with the provided
+     * 'bitsUsed' and the provided steganography method.
+     * Parameter meaning:
      *
      */
     public static BufferedImage encodeFileInImageLSB(File selectedImage, File selectedFile,
@@ -145,57 +125,45 @@ public class SteganographyUtils {
         byte[] selectedFileBytes = getFileAsByteArray(selectedFile);
 
         // encode the signature in the first bytes
-        encodeBytesLSB(coverImageBytes, SIGNATURE.getBytes(), 0);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, SIGNATURE.getBytes(), 0);
         int currentOffsetInBytes = SIGNATURE.getBytes().length;
 
         // encode the length of the "file name + extension"
         String fileName = getFileName(selectedFile);
         byte[] fileNameLengthBytes = Ints.toByteArray(fileName.getBytes().length);
-        encodeBytesLSB(coverImageBytes, fileNameLengthBytes, currentOffsetInBytes);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileNameLengthBytes, currentOffsetInBytes);
         currentOffsetInBytes += fileNameLengthBytes.length;
 
         // encode the file name + extension
-        encodeBytesLSB(coverImageBytes, fileName.getBytes(), currentOffsetInBytes);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileName.getBytes(), currentOffsetInBytes);
         currentOffsetInBytes += fileName.getBytes().length;
 
         // encode the length of the file
         byte[] fileLengthBytes = Ints.toByteArray((int) selectedFile.length());
-        encodeBytesLSB(coverImageBytes, fileLengthBytes, currentOffsetInBytes);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileLengthBytes, currentOffsetInBytes);
         currentOffsetInBytes += fileLengthBytes.length;
 
         // encode the file bytes themselves
-        encodeBytesLSB(coverImageBytes, selectedFileBytes, currentOffsetInBytes);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, selectedFileBytes, currentOffsetInBytes);
 
         // return the image after encoding is done
         return coverImage;
     }
 
     /**
+     * Having the bytes of an image, we validate the first few encoded bits to check
+     * if they have the signature. The signature was encoded in the first bits of the
+     * image, before encoding the actual file. If the signature is not present, at least
+     * one of the following affirmations is true:
+     * - we used the wrong decoding method (steganography method);
+     * - we used the wrong decrypting method (cryptography method);
+     * - the encoded file used a different signature (or none at all);
+     * - there is no encoded file present in the image.
      *
-     */
-    private static byte[] decodeBytesLSB(byte[] imageBytes, int offset, int length) {
-        // multiply the offset by 8 to obtain the number of bits we offset with
-        offset *= 8;
-
-        // declare an array to store our result and then return it
-        byte[] result = new byte[length];
-
-        // loop through each byte of the encoded value
-        for (int b = 0; b < result.length; b++) {
-            // loop through each bit of the current byte
-            for (int i = 0; i < 8; i++, offset++) {
-                // assign bit: [(new byte value) << 1] OR [(text byte) AND 1]
-                result[b] = (byte) ((result[b] << 1) | (imageBytes[offset] & 1));
-            }
-        }
-        return result;
-    }
-
-    /**
-     *
+     * This method throws a SteganographyException if the signature can not be verified.
      */
     private static void validateSignature(byte[] coverImageBytes) {
-        byte[] signatureBytes = decodeBytesLSB(coverImageBytes, 0, SIGNATURE.getBytes().length);
+        byte[] signatureBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, 0, SIGNATURE.getBytes().length);
         String signature = new String(signatureBytes);
         if (!SIGNATURE.equals(signature)) {
             throw new SteganographyException(
@@ -206,6 +174,9 @@ public class SteganographyUtils {
     }
 
     /**
+     * This method decodes a file from an image, with the provided
+     * 'bitsUsed' and the provided steganography method.
+     * Parameter meaning:
      *
      */
     public static RawDecodedFile decodeFileFromImageLSB(File selectedImage,
@@ -224,22 +195,22 @@ public class SteganographyUtils {
         int offsetInBytes = SIGNATURE.getBytes().length;
 
         // obtain the file name length
-        byte[] fileNameLengthBytes = decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES);
+        byte[] fileNameLengthBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES);
         int fileNameLength = Ints.fromByteArray(fileNameLengthBytes);
         offsetInBytes += fileNameLengthBytes.length;
 
         // obtain the file name
-        byte[] fileNameBytes = decodeBytesLSB(coverImageBytes, offsetInBytes, fileNameLength);
+        byte[] fileNameBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, fileNameLength);
         String fileName = new String(fileNameBytes);
         offsetInBytes += fileNameBytes.length;
 
         // obtain the file length
-        byte[] fileLengthBytes = decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES);
+        byte[] fileLengthBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES);
         int fileLength = Ints.fromByteArray(fileLengthBytes);
         offsetInBytes += fileLengthBytes.length;
 
         // obtain the content of the selectedFile as a byte array
-        byte[] fileBytes = decodeBytesLSB(coverImageBytes, offsetInBytes, fileLength);
+        byte[] fileBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, fileLength);
 
         // return the file name & file bytes as a RawDecodedFile
         return new RawDecodedFile(fileName, fileBytes);

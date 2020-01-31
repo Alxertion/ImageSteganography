@@ -162,9 +162,8 @@ public class GUIUtils {
      * Shows a dialog that displays the original and the cover image side by side, and
      * allows the user to either save the image or cancel the operation altogether.
      */
-    public static void showSaveImageDialog(Stage mainStage,
-                                           Image originalImage,
-                                           BufferedImage coverImage) {
+    public static void showSaveImageDialog(Stage mainStage, String originalImageFileName,
+                                           Image originalImage, BufferedImage coverImage) {
         try {
             // load the new window and the components
             FXMLLoader fxmlLoader = new FXMLLoader(GUIUtils.class.getResource("../view/SaveImageView.fxml"));
@@ -173,6 +172,7 @@ public class GUIUtils {
             // send the images to the controller so that they can be displayed
             SaveImageController controller = fxmlLoader.getController();
             controller.setMainStage(mainStage);
+            controller.setOriginalImageFileName(originalImageFileName);
             controller.setOriginalImage(originalImage);
             controller.setCoverImage(coverImage);
 
@@ -193,6 +193,11 @@ public class GUIUtils {
         }
     }
 
+    /**
+     * Shows a file chooser, which allows the user to select a folder and a file name
+     * to save the decoded file. The file chooser is populated with the file name and
+     * extension that were decoded from the cover image.
+     */
     public static void showSaveFileDialog(Stage mainStage, RawDecodedFile decodedFile) {
         // save the actual decoded file
         try {
@@ -209,6 +214,10 @@ public class GUIUtils {
                 AlertUtils.showNotificationAlert(mainStage,
                         "Saving successful!",
                         "The decoded file was saved successfully.");
+            } else {
+                AlertUtils.showNotificationAlert(mainStage,
+                        "Saving error!",
+                        "Please provide a correct file path and name.");
             }
         } catch (IOException exception) {
             AlertUtils.showNotificationAlert(mainStage,

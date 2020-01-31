@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.commons.io.FilenameUtils;
 import steganography.RawDecodedFile;
 import utils.AlertUtils;
 import utils.GUIUtils;
@@ -82,6 +83,7 @@ public class MainController {
 
     // the selected image / file
     private File selectedImage;
+    private String selectedImageName;
     private File selectedFile;
 
     public void initialize() {
@@ -154,10 +156,11 @@ public class MainController {
         if (LSBRadioButton.isSelected()) {
             try {
                 String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
-                // TODO: encode the file name as well after the length
+
                 BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
                         (int) LSBBitsUsedSlider.getValue(), methodString);
-                GUIUtils.showSaveImageDialog(mainStage, imageView.getImage(), coverImage);
+
+                GUIUtils.showSaveImageDialog(mainStage, selectedImageName, imageView.getImage(), coverImage);
             } catch (SteganographyException exception) {
                 AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
             }
@@ -269,8 +272,9 @@ public class MainController {
 
         // load it in the imageView and update the imageName/maxFileSize labels with the correct information
         selectedImage = imageFile;
+        selectedImageName = FilenameUtils.getBaseName(selectedImage.getName());
         loadFileButton.setDisable(false);
-        decodeButton.setDisable(false); // TODO - check if there's actually any info encoded in the image before enabling the button
+        decodeButton.setDisable(false);
         imageView.setImage(image);
         GUIUtils.setImageNameText(imageFile, image, imageNameLabel);
         GUIUtils.centerImage(imageView);
