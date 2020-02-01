@@ -3,18 +3,80 @@ package steganography;
 /**
  * This class contains the actual encoding steganography methods, which involve
  * bit shifting and bitwise operations.
- *
+ * <p>
  * For the decoding, see SteganographyDecoding.java.
  */
+@SuppressWarnings("DuplicatedCode")
 public class SteganographyEncoding {
     /**
-     *
+     * This method does LSB steganography encoding, using 'bitsUsed' least significant bits.
+     * The method can be:
+     * - "fibonacci" (in which case the bytes used in the coverImage are selected using the fibonacci function:
+     * byte 0, byte 1, byte 2, byte 3, byte 5, byte 8, byte 13 etc);
+     * - "i", where i is an int (in which case we take every 'i' byte and use it in encoding).
      */
     public static void encodeBytesLSB(byte[] coverImageBytes,
-                                       byte[] addedBytes,
-                                       int offset) {
+                                      byte[] addedBytes,
+                                      int offset,
+                                      int bitsUsed,
+                                      String method) {
         // TODO: check that the added bytes truly fit in the image
-        // TODO: make this receive the number of bytes used and the method used
+
+        // obtain the byte and bit offset according to how many bits we encoded beforehand
+        int byteOffset = (offset * 8) / bitsUsed;
+        int bitOffset = (offset * 8) % bitsUsed;
+
+        // calculate the offset according to the current encoding method
+        int byteIncrement;
+        if ("fibonacci".equals(method)) {
+            // TODO: implement fibonacci
+            byteIncrement = 1;
+        } else {
+            byteIncrement = Integer.parseInt(method);
+            byteOffset *= byteIncrement;
+        }
+
+        // loop through all the bytes to be added
+        for (int i = 0; i < addedBytes.length; i++) {
+            // get the current 8 bits that we must add
+            int bitsToAdd = addedBytes[i];
+
+            // loop through the bits of the current byte, one at a time
+            for (int currentBit = 7; currentBit >= 0; currentBit--) {
+                // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
+                int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
+
+                // if we encoded the max. number of bits in the current byte,
+                // we take the next byte from the coverImage according to the used method
+                if (bitOffset == bitsUsed) {
+                    if ("fibonacci".equals(method)) {
+                        // TODO: implement fibonacci
+                        byteOffset += byteIncrement;
+                    } else {
+                        byteOffset += byteIncrement;
+                    }
+                    bitOffset = 0;
+
+                    // we shift the current byte to the right by 'bitsUsed' times
+                    coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] >>> bitsUsed);
+                }
+
+                // we encode a bit by shifting to the left and applying OR with the new bit
+                coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] << 1 | bitToAdd);
+
+                // and move on to the next one
+                bitOffset++;
+            }
+        }
+    }
+
+    /**
+     * This method does LSB steganography encoding, using only 1 least significant bit.
+     */
+    public static void encodeBytesLSB(byte[] coverImageBytes,
+                                      byte[] addedBytes,
+                                      int offset) {
+        // TODO: check that the added bytes truly fit in the image
 
         // multiply the offset by 8 to obtain the number of bits we offset with
         offset *= 8;

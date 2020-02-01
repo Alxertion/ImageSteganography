@@ -181,8 +181,8 @@ public class MainController {
                 GUIUtils.showSaveFileDialog(mainStage, decodedFile);
 
                 AlertUtils.showNotificationAlert(mainStage,
-                        "Operation successful!",
-                        "The file has been successfully decoded.");
+                        "Saving successful!",
+                        "The decoded file was saved successfully.");
             } catch (SteganographyException exception) {
                 AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
             }

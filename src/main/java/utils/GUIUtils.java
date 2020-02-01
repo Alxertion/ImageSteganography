@@ -211,9 +211,6 @@ public class GUIUtils {
             File savedFile = fileChooser.showSaveDialog(mainStage);
             if (savedFile != null) {
                 Files.write(savedFile.toPath(), decodedFile.getFileBytes());
-                AlertUtils.showNotificationAlert(mainStage,
-                        "Saving successful!",
-                        "The decoded file was saved successfully.");
             } else {
                 AlertUtils.showNotificationAlert(mainStage,
                         "Saving error!",
