@@ -17,6 +17,7 @@ import steganography.RawDecodedFile;
 import utils.AlertUtils;
 import utils.GUIUtils;
 import steganography.SteganographyUtils;
+import utils.TextFieldLimitListener;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -220,7 +221,8 @@ public class MainController {
                 BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
                         (int) LSBBitsUsedSlider.getValue(), methodString);
 
-                GUIUtils.showSaveImageDialog(mainStage, selectedImageName, imageView.getImage(), coverImage);
+                GUIUtils.showSaveImageDialog(mainStage, selectedImageName, imageView.getImage(), coverImage,
+                        (int) LSBBitsUsedSlider.getValue(), selectedImage);
             } catch (SteganographyException exception) {
                 AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
             }

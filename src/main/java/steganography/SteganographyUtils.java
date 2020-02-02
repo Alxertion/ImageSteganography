@@ -44,7 +44,7 @@ public class SteganographyUtils {
      * Loads an image (as a BufferedImage) from a file.
      * Throws a SteganographyException if the selected file is not an actual image.
      */
-    private static BufferedImage loadImage(File imageFile) {
+    public static BufferedImage loadImage(File imageFile) {
         BufferedImage image;
         try {
             image = ImageIO.read(imageFile);
@@ -64,7 +64,7 @@ public class SteganographyUtils {
      * don't have any issues accessing and modifying the original image itself
      * (and also because we will display the original and the copy side by side).
      */
-    private static BufferedImage createCopyOfImage(BufferedImage image) {
+    public static BufferedImage createCopyOfImage(BufferedImage image) {
         BufferedImage coverImage = new BufferedImage(image.getWidth(), image.getHeight(),
                 BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D graphics = coverImage.createGraphics();
@@ -77,7 +77,7 @@ public class SteganographyUtils {
      * We convert an image to a byte array using a raster. This is done so that we
      * can access the pixel values themselves (and, therefore, encode data into them).
      */
-    private static byte[] getImageAsPixelByteArray(BufferedImage image) {
+    public static byte[] getImageAsPixelByteArray(BufferedImage image) {
         WritableRaster raster = image.getRaster();
         DataBufferByte buffer = (DataBufferByte) raster.getDataBuffer();
         return buffer.getData();

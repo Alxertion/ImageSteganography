@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+@SuppressWarnings("DuplicatedCode")
 public class GUIUtils {
     // COLOR CONSTANTS
     public static final Color PRIMARY_COLOR = new Color(33 / 255d, 150 / 255d, 243 / 255d, 1);
@@ -195,7 +196,8 @@ public class GUIUtils {
      * allows the user to either save the image or cancel the operation altogether.
      */
     public static void showSaveImageDialog(Stage mainStage, String originalImageFileName,
-                                           Image originalImage, BufferedImage coverImage) {
+                                           Image originalImage, BufferedImage coverImage,
+                                           int bitsUsed, File originalImageFile) {
         try {
             // load the new window and the components
             FXMLLoader fxmlLoader = new FXMLLoader(GUIUtils.class.getResource("../view/SaveImageView.fxml"));
@@ -205,8 +207,10 @@ public class GUIUtils {
             SaveImageController controller = fxmlLoader.getController();
             controller.setMainStage(mainStage);
             controller.setOriginalImageFileName(originalImageFileName);
+            controller.setOriginalImageFile(originalImageFile);
             controller.setOriginalImage(originalImage);
             controller.setCoverImage(coverImage);
+            controller.setBitsUsed(bitsUsed);
 
             // show the new window on the screen, modal
             Stage stage = new Stage();

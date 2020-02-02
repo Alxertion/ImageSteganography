@@ -5,6 +5,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * The main class.
+ * Repository link: https://github.com/Alxertion/ImageSteganography
+ */
 public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {

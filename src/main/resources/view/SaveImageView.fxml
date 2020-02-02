@@ -24,16 +24,23 @@
             <Font size="18.0"/>
         </font>
     </Label>
-    <JFXButton layoutX="380.0" layoutY="340.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="360.0"
-               text="Save image" AnchorPane.bottomAnchor="10.0" buttonType="RAISED" AnchorPane.rightAnchor="10.0"
-               onAction="#saveImageButtonHandler">
+    <JFXButton layoutX="380.0" layoutY="340.0" mnemonicParsing="false" onAction="#saveImageButtonHandler"
+               prefHeight="50.0" prefWidth="236.0" text="Save image" AnchorPane.bottomAnchor="10.0"
+               AnchorPane.rightAnchor="10.0" buttonType="RAISED">
         <font>
             <Font size="18.0"/>
         </font>
     </JFXButton>
-    <JFXButton layoutX="14.0" layoutY="336.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="360.0"
-               text="Cancel" AnchorPane.bottomAnchor="10.0" buttonType="RAISED" AnchorPane.leftAnchor="10.0"
-               onAction="#cancelButtonHandler">
+    <JFXButton layoutX="257.0" layoutY="340.0" mnemonicParsing="false" onAction="#showImageDifferenceButtonHandler"
+               prefHeight="50.0" prefWidth="236.0" text="Show image difference" AnchorPane.bottomAnchor="10.0"
+               AnchorPane.rightAnchor="257.0" buttonType="RAISED">
+        <font>
+            <Font size="18.0"/>
+        </font>
+    </JFXButton>
+    <JFXButton layoutX="14.0" layoutY="336.0" mnemonicParsing="false" onAction="#cancelButtonHandler" prefHeight="50.0"
+               prefWidth="236.0" text="Cancel" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
+               buttonType="RAISED">
         <font>
             <Font size="18.0"/>
         </font>

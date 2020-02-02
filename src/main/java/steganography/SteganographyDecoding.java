@@ -1,7 +1,6 @@
 package steganography;
 
 import exceptions.SteganographyException;
-import steganography.fibonacci.FibonacciUtils;
 
 import java.util.Random;
 
@@ -10,6 +9,8 @@ import java.util.Random;
  * bit shifting and bitwise operations.
  * <p>
  * For the encoding, see SteganographyEncoding.java.
+ * <p>
+ * Partly inspired by https://www.dreamincode.net/forums/topic/27950-steganography/
  */
 @SuppressWarnings("DuplicatedCode")
 public class SteganographyDecoding {
