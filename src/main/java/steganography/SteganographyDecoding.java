@@ -3,6 +3,8 @@ package steganography;
 import exceptions.SteganographyException;
 import steganography.fibonacci.FibonacciUtils;
 
+import java.util.Random;
+
 /**
  * This class contains the actual decoding steganography methods, which involve
  * bit shifting and bitwise operations.
@@ -30,8 +32,19 @@ public class SteganographyDecoding {
 
             // calculate the offset according to the current encoding method
             int byteIncrement = 1;
-            if ("random".equals(method)) {
-                byteOffset = FibonacciUtils.getNthFibonacciNumber(byteOffset);
+            Random randomGenerator = new Random();
+            int lowerBoundRandom = 0;
+            int upperBoundRandom = 0;
+            if (method.contains("random")) {
+                String[] split = method.split(",");
+                randomGenerator.setSeed(Long.parseLong(split[1]));
+                lowerBoundRandom = Integer.parseInt(split[2]);
+                upperBoundRandom = Integer.parseInt(split[3]);
+                int value = 0;
+                for (int i = 0; i <= byteOffset; i++) {
+                    value += randomGenerator.nextInt(upperBoundRandom - lowerBoundRandom) + lowerBoundRandom;
+                }
+                byteOffset = value;
             } else {
                 byteIncrement = Integer.parseInt(method);
                 byteOffset *= byteIncrement;
@@ -47,8 +60,8 @@ public class SteganographyDecoding {
                     // if we decoded all the bits from the current byte,
                     // we take the next byte from the coverImage according to the used method
                     if (bitOffset == bitsUsed) {
-                        if ("random".equals(method)) {
-                            byteOffset += FibonacciUtils.getNextFibonacciNumber(byteOffset);
+                        if (method.contains("random")) {
+                            byteOffset += randomGenerator.nextInt(upperBoundRandom - lowerBoundRandom) + lowerBoundRandom;
                         } else {
                             byteOffset += byteIncrement;
                         }
@@ -76,6 +89,7 @@ public class SteganographyDecoding {
 
     /**
      * This method does LSB steganography decoding, using only 1 least significant bit.
+     * It is not currently used in the application.
      */
     public static byte[] decodeBytesLSB(byte[] imageBytes, int offset, int length) {
         try {

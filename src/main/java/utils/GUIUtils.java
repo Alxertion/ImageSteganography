@@ -31,6 +31,7 @@ public class GUIUtils {
     // STRING CONSTANTS
     private static final String FILE_NAME_PREFIX = "File name: ";
     private static final String MAX_FILE_SIZE_PREFIX = "Max. file size: ";
+    private static final String APPROX_MAX_FILE_SIZE_PREFIX = "Approx. max. file size: ";
 
     /**
      * Centers the image in the imageView by doing some calculations using the coordinates.
@@ -135,7 +136,11 @@ public class GUIUtils {
 
         String formattedBytesValue = formatBytesValue(bytes);
         maxFileSizeLabel.setTextFill(SECONDARY_COLOR);
-        maxFileSizeLabel.setText(MAX_FILE_SIZE_PREFIX + formattedBytesValue);
+        if (randomEnabled) {
+            maxFileSizeLabel.setText(APPROX_MAX_FILE_SIZE_PREFIX + formattedBytesValue);
+        } else {
+            maxFileSizeLabel.setText(MAX_FILE_SIZE_PREFIX + formattedBytesValue);
+        }
 
         return bytes;
     }
@@ -161,8 +166,12 @@ public class GUIUtils {
      * if the currently selected method is invalid.
      */
     public static String getSteganographyMethod(JFXRadioButton everyNPixelsRadioButton,
-                                                JFXTextField everyNPixelsTextField) {
-        String methodString;
+                                                JFXTextField everyNPixelsTextField,
+                                                JFXRadioButton randomPatternRadioButton,
+                                                JFXTextField randomSeedTextField,
+                                                JFXTextField randomLowerBoundTextField,
+                                                JFXTextField randomUpperBoundTextField) {
+        String methodString = "";
         if (everyNPixelsRadioButton.isSelected()) {
             try {
                 Integer.parseInt(everyNPixelsTextField.getText());
@@ -172,8 +181,11 @@ public class GUIUtils {
                         "Invalid number value!",
                         "'Every n pixels' value should be a number!");
             }
-        } else {
-            methodString = "random";
+        } else if (randomPatternRadioButton.isSelected()) {
+            methodString = "random" + ","
+                    + randomSeedTextField.getText() + ","
+                    + randomLowerBoundTextField.getText() + ","
+                    + randomUpperBoundTextField.getText();
         }
         return methodString;
     }
@@ -232,9 +244,7 @@ public class GUIUtils {
             if (savedFile != null) {
                 Files.write(savedFile.toPath(), decodedFile.getFileBytes());
             } else {
-                AlertUtils.showNotificationAlert(mainStage,
-                        "Saving error!",
-                        "Please provide a correct file path and name.");
+                throw new RuntimeException();
             }
         } catch (IOException exception) {
             AlertUtils.showNotificationAlert(mainStage,
@@ -325,6 +335,11 @@ public class GUIUtils {
         }
     }
 
+    /**
+     * If the currently selected steganography method is erroneous, we display that instead
+     * of the max. file size (which can not be computed). We also change the color to a
+     * light red.
+     */
     public static void setErrorMaxFileSize(Label maxFileSizeLabel) {
         maxFileSizeLabel.setTextFill(ERROR_COLOR);
         maxFileSizeLabel.setText("Current steganography method is erroneous!");

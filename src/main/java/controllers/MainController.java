@@ -212,7 +212,10 @@ public class MainController {
         if (LSBRadioButton.isSelected()) {
             try {
                 validateSteganographyMethod();
-                String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
+                String methodString = GUIUtils.getSteganographyMethod(
+                        everyNPixelsRadioButton, everyNPixelsTextField,
+                        randomPatternRadioButton, randomSeedTextField,
+                        randomLowerBoundTextField, randomUpperBoundTextField);
 
                 BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
                         (int) LSBBitsUsedSlider.getValue(), methodString);
@@ -229,7 +232,10 @@ public class MainController {
         if (LSBRadioButton.isSelected()) {
             try {
                 validateSteganographyMethod();
-                String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
+                String methodString = GUIUtils.getSteganographyMethod(
+                        everyNPixelsRadioButton, everyNPixelsTextField,
+                        randomPatternRadioButton, randomSeedTextField,
+                        randomLowerBoundTextField, randomUpperBoundTextField);
 
                 RawDecodedFile decodedFile = SteganographyUtils.decodeFileFromImageLSB(selectedImage,
                         (int) LSBBitsUsedSlider.getValue(), methodString);
@@ -240,6 +246,7 @@ public class MainController {
                         "The decoded file was saved successfully.");
             } catch (SteganographyException exception) {
                 AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
+            } catch (RuntimeException ignored) {
             }
         }
     }

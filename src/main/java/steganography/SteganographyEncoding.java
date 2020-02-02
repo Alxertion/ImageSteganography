@@ -3,6 +3,8 @@ package steganography;
 import exceptions.SteganographyException;
 import steganography.fibonacci.FibonacciUtils;
 
+import java.util.Random;
+
 /**
  * This class contains the actual encoding steganography methods, which involve
  * bit shifting and bitwise operations.
@@ -25,14 +27,24 @@ public class SteganographyEncoding {
                                       String method) {
         try {
             // obtain the byte and bit offset according to how many bits we encoded beforehand
-
             int byteOffset = (offset * 8) / bitsUsed;
             int bitOffset = (offset * 8) % bitsUsed;
 
             // calculate the offset according to the current encoding method
             int byteIncrement = 1;
-            if ("fibonacci".equals(method)) {
-                byteOffset = FibonacciUtils.getNthFibonacciNumber(byteOffset);
+            Random randomGenerator = new Random();
+            int lowerBoundRandom = 0;
+            int upperBoundRandom = 0;
+            if (method.contains("random")) {
+                String[] split = method.split(",");
+                randomGenerator.setSeed(Long.parseLong(split[1]));
+                lowerBoundRandom = Integer.parseInt(split[2]);
+                upperBoundRandom = Integer.parseInt(split[3]);
+                int value = 0;
+                for (int i = 0; i <= byteOffset; i++) {
+                    value += randomGenerator.nextInt(upperBoundRandom - lowerBoundRandom) + lowerBoundRandom;
+                }
+                byteOffset = value;
             } else {
                 byteIncrement = Integer.parseInt(method);
                 byteOffset *= byteIncrement;
@@ -51,8 +63,9 @@ public class SteganographyEncoding {
                     // if we encoded the max. number of bits in the current byte,
                     // we take the next byte from the coverImage according to the used method
                     if (bitOffset == bitsUsed) {
-                        if ("fibonacci".equals(method)) {
-                            byteOffset = FibonacciUtils.getNextFibonacciNumber(byteOffset);
+                        if (method.contains("random")) {
+                            byteOffset += randomGenerator.nextInt(upperBoundRandom - lowerBoundRandom) + lowerBoundRandom;
+                            System.out.print(byteOffset + ",");
                         } else {
                             byteOffset += byteIncrement;
                         }
@@ -78,6 +91,7 @@ public class SteganographyEncoding {
 
     /**
      * This method does LSB steganography encoding, using only 1 least significant bit.
+     * It is not currently used in the application.
      */
     public static void encodeBytesLSB(byte[] coverImageBytes,
                                       byte[] addedBytes,
