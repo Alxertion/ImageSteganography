@@ -1,6 +1,7 @@
 package steganography;
 
 import com.google.common.primitives.Ints;
+import encryption.EncryptionUtils;
 import exceptions.SteganographyException;
 import org.apache.commons.io.FilenameUtils;
 
@@ -36,6 +37,7 @@ import java.nio.file.Files;
  * the selected encryption method (if a different encryption method / key is used when
  * decoding, it will not work).
  */
+@SuppressWarnings("DuplicatedCode")
 public class SteganographyUtils {
     private static final String SIGNATURE = "ISLSB";
     private static final int LENGTH_BYTES = 4;
@@ -111,7 +113,8 @@ public class SteganographyUtils {
      *
      */
     public static BufferedImage encodeFileInImageLSB(File selectedImage, File selectedFile,
-                                                     int bitsUsed, String methodString) {
+                                                     int bitsUsed, String methodString,
+                                                     String encryptionMethodString) {
         // load the image as a BufferedImage
         BufferedImage originalImage = loadImage(selectedImage);
 
@@ -122,27 +125,32 @@ public class SteganographyUtils {
         byte[] coverImageBytes = getImageAsPixelByteArray(coverImage);
 
         // obtain the content of the selectedFile as a byte array
-        byte[] selectedFileBytes = getFileAsByteArray(selectedFile);
+        byte[] selectedFileBytes = EncryptionUtils.encryptBytes(
+                getFileAsByteArray(selectedFile), encryptionMethodString);
 
         // encode the signature in the first bytes
-        SteganographyEncoding.encodeBytesLSB(coverImageBytes, SIGNATURE.getBytes(), 0,
+        byte[] signatureBytes = EncryptionUtils.encryptBytes(SIGNATURE.getBytes(), encryptionMethodString);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, signatureBytes, 0,
                 bitsUsed, methodString);
-        int currentOffsetInBytes = SIGNATURE.getBytes().length;
+        int currentOffsetInBytes = signatureBytes.length;
 
         // encode the length of the "file name + extension"
         String fileName = getFileName(selectedFile);
-        byte[] fileNameLengthBytes = Ints.toByteArray(fileName.getBytes().length);
+        byte[] fileNameLengthBytes = EncryptionUtils.encryptBytes(
+                Ints.toByteArray(fileName.getBytes().length), encryptionMethodString);
         SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileNameLengthBytes, currentOffsetInBytes,
                 bitsUsed, methodString);
         currentOffsetInBytes += fileNameLengthBytes.length;
 
         // encode the file name + extension
-        SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileName.getBytes(), currentOffsetInBytes,
+        byte[] fileNameBytes = EncryptionUtils.encryptBytes(fileName.getBytes(), encryptionMethodString);
+        SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileNameBytes, currentOffsetInBytes,
                 bitsUsed, methodString);
-        currentOffsetInBytes += fileName.getBytes().length;
+        currentOffsetInBytes += fileNameBytes.length;
 
         // encode the length of the file
-        byte[] fileLengthBytes = Ints.toByteArray((int) selectedFile.length());
+        byte[] fileLengthBytes = EncryptionUtils.encryptBytes(
+                Ints.toByteArray((int) selectedFile.length()), encryptionMethodString);
         SteganographyEncoding.encodeBytesLSB(coverImageBytes, fileLengthBytes, currentOffsetInBytes,
                 bitsUsed, methodString);
         currentOffsetInBytes += fileLengthBytes.length;
@@ -167,11 +175,24 @@ public class SteganographyUtils {
      *
      * This method throws a SteganographyException if the signature can not be verified.
      */
-    private static void validateSignature(byte[] coverImageBytes, int bitsUsed, String methodString) {
+    private static void validateSignature(byte[] coverImageBytes, int bitsUsed,
+                                          String methodString, String encryptionMethodString) {
+        // encrypt the signature to obtain the number of bytes it has, encrypted
+        byte[] signatureEncryptedBytes = EncryptionUtils.encryptBytes(
+                SIGNATURE.getBytes(), encryptionMethodString);
+
+        // decode the bytes and decrypt them
         byte[] signatureBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, 0,
-                SIGNATURE.getBytes().length, bitsUsed, methodString);
-        String signature = new String(signatureBytes);
-        if (!SIGNATURE.equals(signature)) {
+                signatureEncryptedBytes.length, bitsUsed, methodString);
+        signatureBytes = EncryptionUtils.decryptBytes(signatureBytes, encryptionMethodString);
+
+        // validate if the signature is the same
+        try {
+            String signature = new String(signatureBytes);
+            if (!SIGNATURE.equals(signature)) {
+                throw new RuntimeException();
+            }
+        } catch (Exception e) {
             throw new SteganographyException(
                     "Decoding error!",
                     "There is no encoded file in the provided image."
@@ -186,7 +207,8 @@ public class SteganographyUtils {
      *
      */
     public static RawDecodedFile decodeFileFromImageLSB(File selectedImage,
-                                                        int bitsUsed, String methodString) {
+                                                        int bitsUsed, String methodString,
+                                                        String encryptionMethodString) {
         // load the image as a BufferedImage
         BufferedImage originalImage = loadImage(selectedImage);
 
@@ -197,30 +219,35 @@ public class SteganographyUtils {
         byte[] coverImageBytes = getImageAsPixelByteArray(coverImage);
 
         // obtain and validate the signature
-        validateSignature(coverImageBytes, bitsUsed, methodString);
-        int offsetInBytes = SIGNATURE.getBytes().length;
+        byte[] signatureEncryptedBytes = EncryptionUtils.encryptBytes(SIGNATURE.getBytes(), encryptionMethodString);
+        validateSignature(coverImageBytes, bitsUsed, methodString, encryptionMethodString);
+        int offsetInBytes = signatureEncryptedBytes.length;
 
         // obtain the file name length
         byte[] fileNameLengthBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES,
                 bitsUsed, methodString);
+        fileNameLengthBytes = EncryptionUtils.decryptBytes(fileNameLengthBytes, encryptionMethodString);
         int fileNameLength = Ints.fromByteArray(fileNameLengthBytes);
         offsetInBytes += fileNameLengthBytes.length;
 
         // obtain the file name
         byte[] fileNameBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, fileNameLength,
                 bitsUsed, methodString);
+        fileNameBytes = EncryptionUtils.decryptBytes(fileNameBytes, encryptionMethodString);
         String fileName = new String(fileNameBytes);
         offsetInBytes += fileNameBytes.length;
 
         // obtain the file length
         byte[] fileLengthBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, LENGTH_BYTES,
                 bitsUsed, methodString);
+        fileLengthBytes = EncryptionUtils.decryptBytes(fileLengthBytes, encryptionMethodString);
         int fileLength = Ints.fromByteArray(fileLengthBytes);
         offsetInBytes += fileLengthBytes.length;
 
         // obtain the content of the selectedFile as a byte array
         byte[] fileBytes = SteganographyDecoding.decodeBytesLSB(coverImageBytes, offsetInBytes, fileLength,
                 bitsUsed, methodString);
+        fileBytes = EncryptionUtils.decryptBytes(fileBytes, encryptionMethodString);
 
         // return the file name & file bytes as a RawDecodedFile
         return new RawDecodedFile(fileName, fileBytes);

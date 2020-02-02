@@ -3,6 +3,8 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ImageDifferenceController">
-    <ImageView fx:id="imageDifferenceView" fitHeight="580.0" fitWidth="780.0" layoutX="7.0" layoutY="6.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ImageDifferenceController">
+    <ImageView fx:id="imageDifferenceView" fitHeight="580.0" fitWidth="780.0" layoutX="10.0" layoutY="10.0"
+               pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
 </AnchorPane>

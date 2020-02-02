@@ -110,7 +110,7 @@
                         </font>
                     </Label>
                     <JFXTextField fx:id="randomLowerBoundTextField" layoutX="218.0" layoutY="237.0"
-                                prefHeight="26.0" prefWidth="30.0" promptText="n" text="1">
+                                  prefHeight="26.0" prefWidth="30.0" promptText="n" text="1">
                         <font>
                             <Font size="18.0"/>
                         </font>
@@ -121,7 +121,7 @@
                         </font>
                     </Label>
                     <JFXTextField fx:id="randomUpperBoundTextField" layoutX="276.0" layoutY="237.0"
-                                 prefHeight="26.0" prefWidth="30.0" promptText="n" text="5">
+                                  prefHeight="26.0" prefWidth="30.0" promptText="n" text="5">
                         <font>
                             <Font size="18.0"/>
                         </font>
@@ -151,6 +151,35 @@
                     <Font size="18.0"/>
                 </font>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
+                    <JFXRadioButton fx:id="caesarRadioButton" layoutX="15.0" layoutY="15.0" prefHeight="38.0"
+                                    text="Caesar cypher, shift count (1-7):">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                        <toggleGroup>
+                            <ToggleGroup fx:id="encryptionToggleGroup"/>
+                        </toggleGroup>
+                    </JFXRadioButton>
+                    <JFXTextField fx:id="caesarTextField" layoutX="315.0" layoutY="15.0"
+                                  prefHeight="26.0" prefWidth="15.0" promptText="n" text="1">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextField>
+                    <JFXRadioButton fx:id="vigenereRadioButton" layoutX="15.0" layoutY="55.0" prefHeight="38.0"
+                                    text="Vigenère cypher, with key:" toggleGroup="$encryptionToggleGroup"
+                                    selected="true">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXRadioButton>
+                    <JFXTextArea fx:id="vigenereTextArea" layoutX="28.0" layoutY="95.0"
+                                 prefHeight="135.0" prefWidth="320.0" promptText="key"
+                                 text="The quick brown fox jumps over the lazy dog.">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextArea>
                     <JFXCheckBox fx:id="useEncryptionCheckbox" layoutX="28.0" layoutY="242.0"
                                  prefHeight="42.0" prefWidth="161.0" text="Use encryption?">
                         <font>

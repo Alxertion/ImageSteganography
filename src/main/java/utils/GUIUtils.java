@@ -1,5 +1,6 @@
 package utils;
 
+import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXRadioButton;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
@@ -27,7 +28,7 @@ public class GUIUtils {
     // COLOR CONSTANTS
     public static final Color PRIMARY_COLOR = new Color(33 / 255d, 150 / 255d, 243 / 255d, 1);
     public static final Color SECONDARY_COLOR = new Color(50 / 255d, 50 / 255d, 50 / 255d, 1);
-    public static final Color UNFOCUSED_COLOR = new Color(0.3019608d, 0.3019608d, 0.3019608d, 1);
+    public static final Color UNFOCUSED_COLOR = new Color(77 / 255d, 77 / 255d, 77 / 255d, 1);
     public static final Color ERROR_COLOR = new Color(243 / 255d, 80 / 255d, 75 / 255d, 1);
 
     // STRING CONSTANTS
@@ -193,6 +194,24 @@ public class GUIUtils {
     }
 
     /**
+     * Builds a string to be used in encryption, which will have the first 8 characters
+     * representing the encryption method (Caesar or Vigenere), and the next characters
+     * representing the key used in the encryption / decryption process.
+     */
+    public static String getEncryptionMethod(JFXCheckBox useEncryptionCheckbox,
+                                             JFXRadioButton caesarRadioButton, JFXTextField caesarTextField,
+                                             JFXRadioButton vigenereRadioButton, JFXTextArea vigenereTextArea) {
+        if (useEncryptionCheckbox.isSelected()) {
+            if (caesarRadioButton.isSelected()) {
+                return "  caesar" + caesarTextField.getText();
+            } else if (vigenereRadioButton.isSelected()) {
+                return "vigenere" + vigenereTextArea.getText();
+            }
+        }
+        return "";
+    }
+
+    /**
      * Shows a dialog that displays the original and the cover image side by side, and
      * allows the user to either save the image or cancel the operation altogether.
      */
@@ -321,6 +340,35 @@ public class GUIUtils {
             throw new SteganographyException(
                     "Random bound error!",
                     "The lower bound must be < the upper bound.");
+        }
+    }
+
+    /**
+     * Validates the encryption parameters: caesar cypher text field must not be empty,
+     * Vigenere cypher key must not be empty. Throws a SteganographyException if any of
+     * the previous conditions are not true.
+     */
+    public static void validateEncryption(JFXCheckBox useEncryptionCheckbox,
+                                          JFXRadioButton caesarRadioButton, JFXTextField caesarTextField,
+                                          JFXRadioButton vigenereRadioButton, JFXTextArea vigenereTextArea) {
+        if (useEncryptionCheckbox.isSelected()) {
+            if (caesarRadioButton.isSelected()) {
+                if ("".equals(caesarTextField.getText())) {
+                    caesarTextField.setFocusColor(ERROR_COLOR);
+                    caesarTextField.setUnFocusColor(ERROR_COLOR);
+                    throw new SteganographyException(
+                            "Caesar cypher error!",
+                            "The shift count must not be empty.");
+                }
+            } else if (vigenereRadioButton.isSelected()) {
+                if ("".equals(vigenereTextArea.getText())) {
+                    vigenereTextArea.setFocusColor(ERROR_COLOR);
+                    vigenereTextArea.setUnFocusColor(ERROR_COLOR);
+                    throw new SteganographyException(
+                            "Vigenère cypher error!",
+                            "The key must not be empty.");
+                }
+            }
         }
     }
 

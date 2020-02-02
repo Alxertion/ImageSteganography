@@ -14,9 +14,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.io.FilenameUtils;
 import steganography.RawDecodedFile;
+import steganography.SteganographyUtils;
 import utils.AlertUtils;
 import utils.GUIUtils;
-import steganography.SteganographyUtils;
 import utils.TextFieldLimitListener;
 
 import javax.imageio.ImageIO;
@@ -53,6 +53,16 @@ public class MainController {
     private ToggleGroup patternToggleGroup;
 
     // ENCRYPTION
+    @FXML
+    private JFXRadioButton caesarRadioButton;
+    @FXML
+    private JFXTextField caesarTextField;
+    @FXML
+    private JFXRadioButton vigenereRadioButton;
+    @FXML
+    private JFXTextArea vigenereTextArea;
+    @FXML
+    private ToggleGroup encryptionToggleGroup;
     @FXML
     private JFXCheckBox useEncryptionCheckbox;
 
@@ -97,6 +107,8 @@ public class MainController {
         LSBRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
         everyNPixelsRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
         randomPatternRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+        caesarRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+        vigenereRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
 
         // Set the text field colors
         resetTextFieldColors();
@@ -109,6 +121,7 @@ public class MainController {
         randomSeedTextField.setAlignment(Pos.CENTER);
         randomLowerBoundTextField.setAlignment(Pos.CENTER);
         randomUpperBoundTextField.setAlignment(Pos.CENTER);
+        caesarTextField.setAlignment(Pos.CENTER);
 
         // Limit the number of characters in the input text fields
         everyNPixelsTextField.textProperty().addListener(
@@ -119,6 +132,26 @@ public class MainController {
                 new TextFieldLimitListener(randomLowerBoundTextField, 3, true));
         randomUpperBoundTextField.textProperty().addListener(
                 new TextFieldLimitListener(randomUpperBoundTextField, 3, true));
+        caesarTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            boolean shouldSetValue = false;
+
+            // check for non-number characters
+            if (!newValue.matches("[1-7]*")) {
+                newValue = newValue.replaceAll("[^1-7]", "");
+                shouldSetValue = true;
+            }
+
+            // restrict the length
+            if (newValue.length() > 1) {
+                newValue = newValue.substring(0, 1);
+                shouldSetValue = true;
+            }
+
+            // set the value if all is good
+            if (shouldSetValue) {
+                caesarTextField.setText(newValue);
+            }
+        });
 
         // Set the initial directory of the image and file choosers
         imageChooserDirectory = new File(System.getProperty("user.home"));
@@ -140,7 +173,14 @@ public class MainController {
                 updateMaxFileSize(imageView.getImage(), newValue.intValue());
             }
         };
+        ChangeListener<Object> encryptionErrorUpdater = (observable, oldValue, newValue) -> {
+            try {
+                validateEncryptionMethod();
+            } catch (SteganographyException ignored) {
+            }
+        };
 
+        // add the listeners for the steganography method
         LSBBitsUsedSlider.valueProperty().addListener(sliderMaxFileSizeUpdater);
         everyNPixelsTextField.textProperty().addListener(genericMaxFileSizeUpdater);
         randomSeedTextField.textProperty().addListener(genericMaxFileSizeUpdater);
@@ -148,6 +188,13 @@ public class MainController {
         randomUpperBoundTextField.textProperty().addListener(genericMaxFileSizeUpdater);
         randomPatternRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
         everyNPixelsRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
+
+        // add the listeners for the encryption method
+        useEncryptionCheckbox.selectedProperty().addListener(encryptionErrorUpdater);
+        caesarRadioButton.selectedProperty().addListener(encryptionErrorUpdater);
+        vigenereRadioButton.selectedProperty().addListener(encryptionErrorUpdater);
+        caesarTextField.textProperty().addListener(encryptionErrorUpdater);
+        vigenereTextArea.textProperty().addListener(encryptionErrorUpdater);
 
         // Initialize the help text area with the help information
         GUIUtils.initializeHelpTextArea(helpTextArea);
@@ -159,12 +206,16 @@ public class MainController {
         randomSeedTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
         randomLowerBoundTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
         randomUpperBoundTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+        caesarTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+        vigenereTextArea.setFocusColor(GUIUtils.PRIMARY_COLOR);
 
         // Set the text field colors when unfocused
         everyNPixelsTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
         randomSeedTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
         randomLowerBoundTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
         randomUpperBoundTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+        caesarTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+        vigenereTextArea.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
     }
 
     public void validateSteganographyMethod() {
@@ -175,6 +226,13 @@ public class MainController {
             GUIUtils.validateRandomParameters(randomSeedTextField,
                     randomLowerBoundTextField, randomUpperBoundTextField);
         }
+    }
+
+    public void validateEncryptionMethod() {
+        resetTextFieldColors();
+        GUIUtils.validateEncryption(useEncryptionCheckbox,
+                caesarRadioButton, caesarTextField,
+                vigenereRadioButton, vigenereTextArea);
     }
 
     public boolean updateMaxFileSize(Image image, int bitsUsed) {
@@ -215,14 +273,18 @@ public class MainController {
     private void encodeButtonHandler(ActionEvent event) {
         if (LSBRadioButton.isSelected()) {
             try {
+                validateEncryptionMethod();
                 validateSteganographyMethod();
                 String methodString = GUIUtils.getSteganographyMethod(
                         everyNPixelsRadioButton, everyNPixelsTextField,
                         randomPatternRadioButton, randomSeedTextField,
                         randomLowerBoundTextField, randomUpperBoundTextField);
 
+                String encryptionMethodString = GUIUtils.getEncryptionMethod(useEncryptionCheckbox,
+                        caesarRadioButton, caesarTextField, vigenereRadioButton, vigenereTextArea);
+
                 BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
-                        (int) LSBBitsUsedSlider.getValue(), methodString);
+                        (int) LSBBitsUsedSlider.getValue(), methodString, encryptionMethodString);
 
                 GUIUtils.showSaveImageDialog(mainStage, selectedImageName, imageView.getImage(), coverImage,
                         (int) LSBBitsUsedSlider.getValue(), selectedImage);
@@ -236,14 +298,18 @@ public class MainController {
     private void decodeButtonHandler(ActionEvent event) {
         if (LSBRadioButton.isSelected()) {
             try {
+                validateEncryptionMethod();
                 validateSteganographyMethod();
                 String methodString = GUIUtils.getSteganographyMethod(
                         everyNPixelsRadioButton, everyNPixelsTextField,
                         randomPatternRadioButton, randomSeedTextField,
                         randomLowerBoundTextField, randomUpperBoundTextField);
 
+                String encryptionMethodString = GUIUtils.getEncryptionMethod(useEncryptionCheckbox,
+                        caesarRadioButton, caesarTextField, vigenereRadioButton, vigenereTextArea);
+
                 RawDecodedFile decodedFile = SteganographyUtils.decodeFileFromImageLSB(selectedImage,
-                        (int) LSBBitsUsedSlider.getValue(), methodString);
+                        (int) LSBBitsUsedSlider.getValue(), methodString, encryptionMethodString);
                 GUIUtils.showSaveFileDialog(mainStage, decodedFile);
 
                 AlertUtils.showNotificationAlert(mainStage,
