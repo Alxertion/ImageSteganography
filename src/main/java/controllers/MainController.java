@@ -2,6 +2,7 @@ package controllers;
 
 import com.jfoenix.controls.*;
 import exceptions.SteganographyException;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -29,8 +30,6 @@ public class MainController {
     // STEGANOGRAPHY METHOD - Radio Buttons & Toggle Group
     @FXML
     private JFXRadioButton LSBRadioButton;
-//    @FXML
-//    private JFXRadioButton PVDRadioButton;
     @FXML
     private ToggleGroup methodToggleGroup;
 
@@ -40,9 +39,15 @@ public class MainController {
     @FXML
     private JFXTextField everyNPixelsTextField;
     @FXML
-    private JFXRadioButton fibonacciPatternRadioButton;
+    private JFXRadioButton randomPatternRadioButton;
     @FXML
     private JFXRadioButton everyNPixelsRadioButton;
+    @FXML
+    private JFXTextField randomSeedTextField;
+    @FXML
+    private JFXTextField randomLowerBoundTextField;
+    @FXML
+    private JFXTextField randomUpperBoundTextField;
     @FXML
     private ToggleGroup patternToggleGroup;
 
@@ -89,31 +94,30 @@ public class MainController {
     public void initialize() {
         // Set the radio button colors
         LSBRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
-//        PVDRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
         everyNPixelsRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
-        fibonacciPatternRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+        randomPatternRadioButton.setSelectedColor(GUIUtils.PRIMARY_COLOR);
+
+        // Set the text field colors
+        resetTextFieldColors();
 
         // Set the checkbox colors
         useEncryptionCheckbox.setCheckedColor(GUIUtils.PRIMARY_COLOR);
 
-        // Text alignment to center for the pixel text field
+        // Text alignment to center for the text fields
         everyNPixelsTextField.setAlignment(Pos.CENTER);
+        randomSeedTextField.setAlignment(Pos.CENTER);
+        randomLowerBoundTextField.setAlignment(Pos.CENTER);
+        randomUpperBoundTextField.setAlignment(Pos.CENTER);
 
-        // Limit the number of characters to 3 and allow only numbers
-        everyNPixelsTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            boolean shouldSetValue = false;
-            if (!newValue.matches("\\d*")) {
-                newValue = newValue.replaceAll("[^\\d]", "");
-                shouldSetValue = true;
-            }
-            if (newValue.length() > 3) {
-                newValue = newValue.substring(0, 3);
-                shouldSetValue = true;
-            }
-            if (shouldSetValue) {
-                everyNPixelsTextField.setText(newValue);
-            }
-        });
+        // Limit the number of characters in the input text fields
+        everyNPixelsTextField.textProperty().addListener(
+                new TextFieldLimitListener(everyNPixelsTextField, 3, true));
+        randomSeedTextField.textProperty().addListener(
+                new TextFieldLimitListener(randomSeedTextField, 8, true));
+        randomLowerBoundTextField.textProperty().addListener(
+                new TextFieldLimitListener(randomLowerBoundTextField, 3, true));
+        randomUpperBoundTextField.textProperty().addListener(
+                new TextFieldLimitListener(randomUpperBoundTextField, 3, true));
 
         // Set the initial directory of the image and file choosers
         imageChooserDirectory = new File(System.getProperty("user.home"));
@@ -123,16 +127,65 @@ public class MainController {
         imageView.setPreserveRatio(true);
 
         // Set a listener on the slider to modify the maximum file size and unload the
-        // file if too few bits were selected
-        LSBBitsUsedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+        // file if too few bits were selected. We set similar listeners on the other
+        // input fields in the current method
+        ChangeListener<Object> genericMaxFileSizeUpdater = (observable, oldValue, newValue) -> {
+            if (imageView.getImage() != null) {
+                updateMaxFileSize(imageView.getImage(), (int) LSBBitsUsedSlider.getValue());
+            }
+        };
+        ChangeListener<Number> sliderMaxFileSizeUpdater = (observable, oldValue, newValue) -> {
             if (imageView.getImage() != null) {
                 updateMaxFileSize(imageView.getImage(), newValue.intValue());
             }
-        });
+        };
+
+        LSBBitsUsedSlider.valueProperty().addListener(sliderMaxFileSizeUpdater);
+        everyNPixelsTextField.textProperty().addListener(genericMaxFileSizeUpdater);
+        randomSeedTextField.textProperty().addListener(genericMaxFileSizeUpdater);
+        randomLowerBoundTextField.textProperty().addListener(genericMaxFileSizeUpdater);
+        randomUpperBoundTextField.textProperty().addListener(genericMaxFileSizeUpdater);
+        randomPatternRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
+        everyNPixelsRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
+    }
+
+    public void resetTextFieldColors() {
+        // Set the text field colors when focused
+        everyNPixelsTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+        randomSeedTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+        randomLowerBoundTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+        randomUpperBoundTextField.setFocusColor(GUIUtils.PRIMARY_COLOR);
+
+        // Set the text field colors when unfocused
+        everyNPixelsTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+        randomSeedTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+        randomLowerBoundTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+        randomUpperBoundTextField.setUnFocusColor(GUIUtils.UNFOCUSED_COLOR);
+    }
+
+    public void validateSteganographyMethod() {
+        resetTextFieldColors();
+        if (everyNPixelsRadioButton.isSelected()) {
+            GUIUtils.validateEveryNPixelsParameters(everyNPixelsTextField);
+        } else if (randomPatternRadioButton.isSelected()) {
+            GUIUtils.validateRandomParameters(randomSeedTextField,
+                    randomLowerBoundTextField, randomUpperBoundTextField);
+        }
     }
 
     public boolean updateMaxFileSize(Image image, int bitsUsed) {
-        long maxFileSize = GUIUtils.getMaxFileSize(image, bitsUsed);
+        try {
+            validateSteganographyMethod();
+        } catch (SteganographyException exception) {
+            GUIUtils.setErrorMaxFileSize(maxFileSizeLabel);
+            return true;
+        }
+
+        long maxFileSize = GUIUtils.getMaxFileSize(image, bitsUsed,
+                everyNPixelsRadioButton.isSelected(), GUIUtils.getNumericTextFieldValue(everyNPixelsTextField),
+                randomPatternRadioButton.isSelected(), GUIUtils.getNumericTextFieldValue(randomLowerBoundTextField),
+                GUIUtils.getNumericTextFieldValue(randomUpperBoundTextField));
+
         if (selectedFile != null && selectedFile.length() > maxFileSize) {
             GUIUtils.resetFileNameText(fileNameLabel);
             encodeButton.setDisable(true);
@@ -142,7 +195,10 @@ public class MainController {
                     "The file was unloaded.");
             return false;
         } else {
-            maxBytesSize = GUIUtils.setMaxFileSize(image, maxFileSizeLabel, bitsUsed);
+            maxBytesSize = GUIUtils.setMaxFileSize(image, maxFileSizeLabel, bitsUsed,
+                    everyNPixelsRadioButton.isSelected(), GUIUtils.getNumericTextFieldValue(everyNPixelsTextField),
+                    randomPatternRadioButton.isSelected(), GUIUtils.getNumericTextFieldValue(randomLowerBoundTextField),
+                    GUIUtils.getNumericTextFieldValue(randomUpperBoundTextField));
             return true;
         }
     }
@@ -155,6 +211,7 @@ public class MainController {
     private void encodeButtonHandler(ActionEvent event) {
         if (LSBRadioButton.isSelected()) {
             try {
+                validateSteganographyMethod();
                 String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
 
                 BufferedImage coverImage = SteganographyUtils.encodeFileInImageLSB(selectedImage, selectedFile,
@@ -165,15 +222,13 @@ public class MainController {
                 AlertUtils.showNotificationAlert(mainStage, exception.getTitle(), exception.getMessage());
             }
         }
-//        else if (PVDRadioButton.isSelected()) {
-//            SteganographyUtils.applyPVD(selectedImage, selectedFile);
-//        }
     }
 
     @FXML
     private void decodeButtonHandler(ActionEvent event) {
         if (LSBRadioButton.isSelected()) {
             try {
+                validateSteganographyMethod();
                 String methodString = GUIUtils.getSteganographyMethod(everyNPixelsRadioButton, everyNPixelsTextField);
 
                 RawDecodedFile decodedFile = SteganographyUtils.decodeFileFromImageLSB(selectedImage,

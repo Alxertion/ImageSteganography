@@ -24,6 +24,9 @@ import java.nio.file.Files;
 public class GUIUtils {
     // COLOR CONSTANTS
     public static final Color PRIMARY_COLOR = new Color(33 / 255d, 150 / 255d, 243 / 255d, 1);
+    public static final Color SECONDARY_COLOR = new Color(50 / 255d, 50 / 255d, 50 / 255d, 1);
+    public static final Color UNFOCUSED_COLOR = new Color(0.3019608d, 0.3019608d, 0.3019608d, 1);
+    public static final Color ERROR_COLOR = new Color(243 / 255d, 80 / 255d, 75 / 255d, 1);
 
     // STRING CONSTANTS
     private static final String FILE_NAME_PREFIX = "File name: ";
@@ -96,12 +99,24 @@ public class GUIUtils {
      * Returns the maximum file size possible that can be encoded in an image,
      * based on the image width & height, and the number of least significant
      * bits that are used.
+     * It also takes into account the pixel choosing pattern (every N pixels,
+     * or random).
      */
-    public static long getMaxFileSize(Image image, int bitsUsed) {
+    public static long getMaxFileSize(Image image, int bitsUsed,
+                                      boolean everyNPixelsEnabled, int everyNPixelsValue,
+                                      boolean randomEnabled, int lowerBound, int upperBound) {
+        // calculate the bytes based on the 'bitsUsed' value
         double bytes = image.getWidth() * image.getHeight(); // number of pixels
         bytes *= 3; // max number of encoded bits if we use 1 bit
         bytes *= bitsUsed; // max number of encoded bits if we use 'bitsUsed' bits
         bytes /= 8; // max number of encoded bytes
+
+        // use the pixel choosing pattern as a factor
+        if (everyNPixelsEnabled) {
+            bytes /= everyNPixelsValue;
+        } else if (randomEnabled) {
+            bytes /= (lowerBound + upperBound) / 2.0;
+        }
         return (long) bytes;
     }
 
@@ -111,10 +126,15 @@ public class GUIUtils {
      * formatted as bytes, KBytes or MBytes.
      * It returns the amount of bytes that can be encoded.
      */
-    public static long setMaxFileSize(Image image, Label maxFileSizeLabel, int bitsUsed) {
-        long bytes = getMaxFileSize(image, bitsUsed);
+    public static long setMaxFileSize(Image image, Label maxFileSizeLabel, int bitsUsed,
+                                      boolean everyNPixelsEnabled, int everyNPixelsValue,
+                                      boolean randomEnabled, int lowerBound, int upperBound) {
+        long bytes = getMaxFileSize(image, bitsUsed,
+                everyNPixelsEnabled, everyNPixelsValue,
+                randomEnabled, lowerBound, upperBound);
 
         String formattedBytesValue = formatBytesValue(bytes);
+        maxFileSizeLabel.setTextFill(SECONDARY_COLOR);
         maxFileSizeLabel.setText(MAX_FILE_SIZE_PREFIX + formattedBytesValue);
 
         return bytes;
@@ -153,7 +173,7 @@ public class GUIUtils {
                         "'Every n pixels' value should be a number!");
             }
         } else {
-            methodString = "fibonacci";
+            methodString = "random";
         }
         return methodString;
     }
@@ -221,5 +241,92 @@ public class GUIUtils {
                     "Saving error!",
                     "The decoded file could not be saved.");
         }
+    }
+
+    /**
+     * Returns the value of a text field as an int. Returns a -1 value
+     * if the text field cannot be converted to an int.
+     */
+    public static int getNumericTextFieldValue(JFXTextField numericTextField) {
+        try {
+            return Integer.parseInt(numericTextField.getText());
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Validates the random parameters: the seed/lower bound/upper bound are not empty,
+     * the lower bound/upper bound are >= 1, and the lower bound < upper bound. Throws
+     * a SteganographyException if any of the aforementioned conditions are not true.
+     */
+    public static void validateRandomParameters(JFXTextField seedTextField,
+                                                JFXTextField lowerBoundTextField,
+                                                JFXTextField upperBoundTextField) {
+        int seedValue = getNumericTextFieldValue(seedTextField);
+        int lowerBound = getNumericTextFieldValue(lowerBoundTextField);
+        int upperBound = getNumericTextFieldValue(upperBoundTextField);
+
+        if (seedValue < 0) {
+            seedTextField.setFocusColor(ERROR_COLOR);
+            seedTextField.setUnFocusColor(ERROR_COLOR);
+            throw new SteganographyException(
+                    "Random seed error!",
+                    "The seed must not be empty.");
+        }
+        if (lowerBound < 0 || upperBound < 0) {
+            if (lowerBound < 0) {
+                lowerBoundTextField.setFocusColor(ERROR_COLOR);
+                lowerBoundTextField.setUnFocusColor(ERROR_COLOR);
+            } else {
+                upperBoundTextField.setFocusColor(ERROR_COLOR);
+                upperBoundTextField.setUnFocusColor(ERROR_COLOR);
+            }
+            throw new SteganographyException(
+                    "Random bound error!",
+                    "The bounds must not be empty.");
+        }
+        if (lowerBound < 1 || upperBound < 1) {
+            if (lowerBound < 1) {
+                lowerBoundTextField.setFocusColor(ERROR_COLOR);
+                lowerBoundTextField.setUnFocusColor(ERROR_COLOR);
+            } else {
+                upperBoundTextField.setFocusColor(ERROR_COLOR);
+                upperBoundTextField.setUnFocusColor(ERROR_COLOR);
+            }
+            throw new SteganographyException(
+                    "Random bound error!",
+                    "The bounds must be >= 1.");
+        }
+        if (lowerBound >= upperBound) {
+            lowerBoundTextField.setFocusColor(ERROR_COLOR);
+            lowerBoundTextField.setUnFocusColor(ERROR_COLOR);
+            upperBoundTextField.setFocusColor(ERROR_COLOR);
+            upperBoundTextField.setUnFocusColor(ERROR_COLOR);
+            throw new SteganographyException(
+                    "Random bound error!",
+                    "The lower bound must be < the upper bound.");
+        }
+    }
+
+    /**
+     * Validates the everyNPixels parameter: everyNPixels text field is >= 1.
+     * Throws a SteganographyException if the previous condition is not true.
+     */
+    public static void validateEveryNPixelsParameters(JFXTextField everyNPixelsTextField) {
+        int everyNPixelsValue = getNumericTextFieldValue(everyNPixelsTextField);
+
+        if (everyNPixelsValue < 1) {
+            everyNPixelsTextField.setFocusColor(ERROR_COLOR);
+            everyNPixelsTextField.setUnFocusColor(ERROR_COLOR);
+            throw new SteganographyException(
+                    "Pixel pattern error!",
+                    "The pixel pattern must be >= 1.");
+        }
+    }
+
+    public static void setErrorMaxFileSize(Label maxFileSizeLabel) {
+        maxFileSizeLabel.setTextFill(ERROR_COLOR);
+        maxFileSizeLabel.setText("Current steganography method is erroneous!");
     }
 }

@@ -225,8 +225,4 @@ public class SteganographyUtils {
         // return the file name & file bytes as a RawDecodedFile
         return new RawDecodedFile(fileName, fileBytes);
     }
-
-    public static void applyPVD(File selectedImage, File selectedFile) {
-        // TODO: maybe try to do this method?
-    }
 }

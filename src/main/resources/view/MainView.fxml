@@ -18,6 +18,8 @@
 <?import javafx.scene.text.Font?>
 
 
+<?import com.jfoenix.controls.JFXComboBox?>
+<?import com.jfoenix.controls.JFXSpinner?>
 <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
             minWidth="-Infinity" prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.MainController">
@@ -59,14 +61,6 @@
                             <Font size="18.0"/>
                         </font>
                     </JFXRadioButton>
-<!--                    <JFXRadioButton fx:id="PVDRadioButton" layoutX="14.0" layoutY="220.0"-->
-<!--                                    prefHeight="38.0" prefWidth="276.0"-->
-<!--                                    text="Pixel-value differencing (PVD)"-->
-<!--                                    toggleGroup="$methodToggleGroup">-->
-<!--                        <font>-->
-<!--                            <Font size="18.0"/>-->
-<!--                        </font>-->
-<!--                    </JFXRadioButton>-->
                     <JFXSlider fx:id="LSBBitsUsedSlider" blockIncrement="1.0" layoutX="132.0"
                                layoutY="57.0" majorTickUnit="1.0" max="8.0" min="1.0"
                                minorTickCount="0" prefHeight="24.0" prefWidth="230.0"
@@ -82,9 +76,9 @@
                             <Font size="18.0"/>
                         </font>
                     </Label>
-                    <JFXRadioButton fx:id="fibonacciPatternRadioButton" layoutX="81.0"
+                    <JFXRadioButton fx:id="randomPatternRadioButton" layoutX="81.0"
                                     layoutY="158.0" prefHeight="38.0" prefWidth="111.0"
-                                    text="Fibonacci">
+                                    text="Random">
                         <font>
                             <Font size="18.0"/>
                         </font>
@@ -99,6 +93,44 @@
                             <Font size="18.0"/>
                         </font>
                     </JFXRadioButton>
+                    <Label layoutX="110.0" layoutY="203.0" text="- Seed:">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <JFXTextField fx:id="randomSeedTextField" layoutX="175.0" layoutY="197.0"
+                                  prefHeight="26.0" prefWidth="80.0" promptText="seed" text="12345678">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextField>
+                    <Label layoutX="110.0" layoutY="243.0" text="- Range from ">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <JFXTextField fx:id="randomLowerBoundTextField" layoutX="218.0" layoutY="237.0"
+                                prefHeight="26.0" prefWidth="30.0" promptText="n" text="1">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextField>
+                    <Label layoutX="255.0" layoutY="243.0" text="to">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
+                    <JFXTextField fx:id="randomUpperBoundTextField" layoutX="276.0" layoutY="237.0"
+                                 prefHeight="26.0" prefWidth="30.0" promptText="n" text="5">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextField>
+                    <Label layoutX="310.0" layoutY="243.0" text="pixels">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </Label>
                     <JFXTextField fx:id="everyNPixelsTextField" layoutX="204.0" layoutY="120.0"
                                   prefHeight="26.0" prefWidth="30.0" promptText="n" text="1">
                         <font>

@@ -1,5 +1,8 @@
 package steganography;
 
+import exceptions.SteganographyException;
+import steganography.fibonacci.FibonacciUtils;
+
 /**
  * This class contains the actual encoding steganography methods, which involve
  * bit shifting and bitwise operations.
@@ -20,53 +23,56 @@ public class SteganographyEncoding {
                                       int offset,
                                       int bitsUsed,
                                       String method) {
-        // TODO: check that the added bytes truly fit in the image
+        try {
+            // obtain the byte and bit offset according to how many bits we encoded beforehand
 
-        // obtain the byte and bit offset according to how many bits we encoded beforehand
-        int byteOffset = (offset * 8) / bitsUsed;
-        int bitOffset = (offset * 8) % bitsUsed;
+            int byteOffset = (offset * 8) / bitsUsed;
+            int bitOffset = (offset * 8) % bitsUsed;
 
-        // calculate the offset according to the current encoding method
-        int byteIncrement;
-        if ("fibonacci".equals(method)) {
-            // TODO: implement fibonacci
-            byteIncrement = 1;
-        } else {
-            byteIncrement = Integer.parseInt(method);
-            byteOffset *= byteIncrement;
-        }
-
-        // loop through all the bytes to be added
-        for (int i = 0; i < addedBytes.length; i++) {
-            // get the current 8 bits that we must add
-            int bitsToAdd = addedBytes[i];
-
-            // loop through the bits of the current byte, one at a time
-            for (int currentBit = 7; currentBit >= 0; currentBit--) {
-                // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
-                int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
-
-                // if we encoded the max. number of bits in the current byte,
-                // we take the next byte from the coverImage according to the used method
-                if (bitOffset == bitsUsed) {
-                    if ("fibonacci".equals(method)) {
-                        // TODO: implement fibonacci
-                        byteOffset += byteIncrement;
-                    } else {
-                        byteOffset += byteIncrement;
-                    }
-                    bitOffset = 0;
-
-                    // we shift the current byte to the right by 'bitsUsed' times
-                    coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] >>> bitsUsed);
-                }
-
-                // we encode a bit by shifting to the left and applying OR with the new bit
-                coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] << 1 | bitToAdd);
-
-                // and move on to the next one
-                bitOffset++;
+            // calculate the offset according to the current encoding method
+            int byteIncrement = 1;
+            if ("fibonacci".equals(method)) {
+                byteOffset = FibonacciUtils.getNthFibonacciNumber(byteOffset);
+            } else {
+                byteIncrement = Integer.parseInt(method);
+                byteOffset *= byteIncrement;
             }
+
+            // loop through all the bytes to be added
+            for (int i = 0; i < addedBytes.length; i++) {
+                // get the current 8 bits that we must add
+                int bitsToAdd = addedBytes[i];
+
+                // loop through the bits of the current byte, one at a time
+                for (int currentBit = 7; currentBit >= 0; currentBit--) {
+                    // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
+                    int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
+
+                    // if we encoded the max. number of bits in the current byte,
+                    // we take the next byte from the coverImage according to the used method
+                    if (bitOffset == bitsUsed) {
+                        if ("fibonacci".equals(method)) {
+                            byteOffset = FibonacciUtils.getNextFibonacciNumber(byteOffset);
+                        } else {
+                            byteOffset += byteIncrement;
+                        }
+                        bitOffset = 0;
+
+                        // we shift the current byte to the right by 'bitsUsed' times
+                        coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] >>> bitsUsed);
+                    }
+
+                    // we encode a bit by shifting to the left and applying OR with the new bit
+                    coverImageBytes[byteOffset] = (byte) (coverImageBytes[byteOffset] << 1 | bitToAdd);
+
+                    // and move on to the next one
+                    bitOffset++;
+                }
+            }
+        } catch (Exception e) {
+            throw new SteganographyException(
+                    "The loaded file size is too big!",
+                    "Please change the file or the encoding method.");
         }
     }
 
@@ -76,25 +82,29 @@ public class SteganographyEncoding {
     public static void encodeBytesLSB(byte[] coverImageBytes,
                                       byte[] addedBytes,
                                       int offset) {
-        // TODO: check that the added bytes truly fit in the image
+        try {
+            // multiply the offset by 8 to obtain the number of bits we offset with
+            offset *= 8;
 
-        // multiply the offset by 8 to obtain the number of bits we offset with
-        offset *= 8;
+            // loop through all the bytes to be added
+            for (int i = 0; i < addedBytes.length; i++) {
+                // get the current 8 bits that we must add
+                int bitsToAdd = addedBytes[i];
 
-        // loop through all the bytes to be added
-        for (int i = 0; i < addedBytes.length; i++) {
-            // get the current 8 bits that we must add
-            int bitsToAdd = addedBytes[i];
+                // loop through the bits of the current byte, one at a time
+                for (int currentBit = 7; currentBit >= 0; currentBit--, offset++) {
+                    // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
+                    int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
 
-            // loop through the bits of the current byte, one at a time
-            for (int currentBit = 7; currentBit >= 0; currentBit--, offset++) {
-                // get the bit that we must add (shift by 'currentBit' bits and then isolate it)
-                int bitToAdd = (bitsToAdd >>> currentBit) & 0x01;
-
-                // AND the current bit with 0x1111 1110 (0xFE) to make the last bit 0, and then
-                // OR with the bit to be added, to place it in that empty spot (which we zeroed)
-                coverImageBytes[offset] = (byte) ((coverImageBytes[offset] & 0xFE) | bitToAdd);
+                    // AND the current bit with 0x1111 1110 (0xFE) to make the last bit 0, and then
+                    // OR with the bit to be added, to place it in that empty spot (which we zeroed)
+                    coverImageBytes[offset] = (byte) ((coverImageBytes[offset] & 0xFE) | bitToAdd);
+                }
             }
+        } catch (Exception e) {
+            throw new SteganographyException(
+                    "The loaded file size is too big!",
+                    "Please change the file or the encoding method.");
         }
     }
 }
