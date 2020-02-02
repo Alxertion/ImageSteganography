@@ -258,7 +258,11 @@
                 </font>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="368.0">
                     <JFXTextArea fx:id="helpTextArea" editable="false" layoutX="14.0" layoutY="12.0"
-                                 prefHeight="267.0" prefWidth="348.0"/>
+                                 prefHeight="267.0" prefWidth="348.0">
+                        <font>
+                            <Font size="18.0"/>
+                        </font>
+                    </JFXTextArea>
                 </AnchorPane>
             </TitledPane>
         </GridPane>

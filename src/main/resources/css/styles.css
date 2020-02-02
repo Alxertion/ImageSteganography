@@ -35,3 +35,7 @@
     -fx-fill: white;
     -fx-stroke: white;
 }
+
+.text-area *.text {
+    -fx-text-alignment: justify;
+}

@@ -148,6 +148,9 @@ public class MainController {
         randomUpperBoundTextField.textProperty().addListener(genericMaxFileSizeUpdater);
         randomPatternRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
         everyNPixelsRadioButton.selectedProperty().addListener(genericMaxFileSizeUpdater);
+
+        // Initialize the help text area with the help information
+        GUIUtils.initializeHelpTextArea(helpTextArea);
     }
 
     public void resetTextFieldColors() {

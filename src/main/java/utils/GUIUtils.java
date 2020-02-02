@@ -1,6 +1,7 @@
 package utils;
 
 import com.jfoenix.controls.JFXRadioButton;
+import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
 import controllers.SaveImageController;
 import exceptions.SteganographyException;
@@ -347,5 +348,16 @@ public class GUIUtils {
     public static void setErrorMaxFileSize(Label maxFileSizeLabel) {
         maxFileSizeLabel.setTextFill(ERROR_COLOR);
         maxFileSizeLabel.setText("Current steganography method is erroneous!");
+    }
+
+    /**
+     * Set the help text of the application in the dedicated text area.
+     */
+    public static void initializeHelpTextArea(JFXTextArea helpTextArea) {
+        helpTextArea.setText("\tTO ENCODE: select the desired steganography method on the top left side, " +
+                "choose an encryption method if desired, load an image and a file to encode in the image, " +
+                "and click the 'Encode' button.\n" +
+                "\tTO DECODE: select the previously used steganography and encryption methods, " +
+                "load the image, and click the 'Decode' button.");
     }
 }
