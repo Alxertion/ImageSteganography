@@ -354,10 +354,10 @@ public class GUIUtils {
      * Set the help text of the application in the dedicated text area.
      */
     public static void initializeHelpTextArea(JFXTextArea helpTextArea) {
-        helpTextArea.setText("\tTO ENCODE: select the desired steganography method on the top left side, " +
+        helpTextArea.setText("\t- TO ENCODE: select the desired steganography method on the top left side, " +
                 "choose an encryption method if desired, load an image and a file to encode in the image, " +
                 "and click the 'Encode' button.\n" +
-                "\tTO DECODE: select the previously used steganography and encryption methods, " +
+                "\t- TO DECODE: select the previously used steganography and encryption methods, " +
                 "load the image, and click the 'Decode' button.");
     }
 }
