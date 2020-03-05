@@ -10,7 +10,6 @@ import java.util.Random;
  * <p>
  * For the encoding, see SteganographyEncoding.java.
  * <p>
- * Partly inspired by https://www.dreamincode.net/forums/topic/27950-steganography/
  */
 @SuppressWarnings("DuplicatedCode")
 public class SteganographyDecoding {
@@ -91,6 +90,8 @@ public class SteganographyDecoding {
     /**
      * This method does LSB steganography decoding, using only 1 least significant bit.
      * It is not currently used in the application.
+     * <p>
+     * Partly inspired by https://www.dreamincode.net/forums/topic/27950-steganography/
      */
     public static byte[] decodeBytesLSB(byte[] imageBytes, int offset, int length) {
         try {

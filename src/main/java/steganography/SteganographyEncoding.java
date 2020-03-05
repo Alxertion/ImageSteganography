@@ -9,8 +9,6 @@ import java.util.Random;
  * bit shifting and bitwise operations.
  * <p>
  * For the decoding, see SteganographyDecoding.java.
- * <p>
- * Partly inspired by https://www.dreamincode.net/forums/topic/27950-steganography/
  */
 @SuppressWarnings("DuplicatedCode")
 public class SteganographyEncoding {
@@ -92,6 +90,8 @@ public class SteganographyEncoding {
     /**
      * This method does LSB steganography encoding, using only 1 least significant bit.
      * It is not currently used in the application.
+     * <p>
+     * Partly inspired by https://www.dreamincode.net/forums/topic/27950-steganography/
      */
     public static void encodeBytesLSB(byte[] coverImageBytes,
                                       byte[] addedBytes,
